@@ -42,6 +42,10 @@ class BoardTest {
     @Test
     void getEmptyPositionsReturnsCorrectListTest() {
         assertTrue(board.getEmptyPositions().size() > 0);
+        
+        // Clear the board and see if it is empty
+        clearBoard(board);
+        assertEquals(16, board.getEmptyPositions().size());
     }
 
     @Test
@@ -154,7 +158,7 @@ class BoardTest {
         assertEquals(4, board.getCell(0, 0).getValue());
         assertTrue(board.getScore() >= 4);
     }
-
+  
     @Test
     public void testMoveUpDoesNotMergeDifferentTiles() {
         clearBoard(board);
@@ -170,7 +174,110 @@ class BoardTest {
         assertEquals(2, board.getCell(0, 0).getValue());
         assertEquals(32, board.getCell(1, 0).getValue());
     }
+  
+    // Move DOWN tests
+    @Test
+    void moveDownChangeTheBoardTest() {
+        assertTrue(board.moveDown());
+    }
 
+    @Test
+    void moveDownMovesTileFromTopToBottomTest() {
+        clearBoard(board);
+
+        // Place a single tile at the top of the first column
+        board.setCell(0, 0, new Cell(2));
+
+        boolean moved = board.moveDown();
+
+        // Expect the tile to have moved to the bottom of the column
+        assertTrue(moved);
+        assertEquals(2, board.getCell(board.getSize() - 1, 0).getValue());
+    }
+
+    @Test
+    void moveDownMergesTilesAndIncrementsScoreTest() {
+        clearBoard(board);
+
+        // Place two equal tiles so they should merge when moved down
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(1, 0, new Cell(2));
+
+        boolean moved = board.moveDown();
+
+        // After merging, bottom cell should be 4 and score increased by 4
+        assertTrue(moved);
+        assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
+        assertTrue(board.getScore() >= 4);
+    }
+
+    @Test
+    void moveDownDoesNotMergeDifferentTilesTest() {
+        clearBoard(board);
+
+        // Place two different tiles in the same column
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(1, 0, new Cell(4));
+
+        boolean moved = board.moveDown();
+
+        // The tiles should not merge, they should remain in their positions
+        assertTrue(moved);
+        assertEquals(2, board.getCell(board.getSize() - 2, 0).getValue());
+        assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
+    }
+
+    // Move RIGHT tests
+    @Test
+    void moveRightChangeTheBoardTest() {
+        assertTrue(board.moveRight());
+    }
+
+    @Test
+    void moveRightTileFromLeftToRightTest() {
+        clearBoard(board);
+
+        // Place a tile in a cell
+        board.setCell(0, 0, new Cell(2));
+        
+        // Move the board right
+        board.moveRight();
+
+        // Check that the tile has moved to the rightmost position
+        assertEquals(2, board.getCell(0, board.getSize() - 1).getValue());
+    }
+
+    @Test
+    void moveRightMergesTilesAndIncrementsScoreTest() {
+        clearBoard(board);
+
+        // Place two equal tiles so they should merge when moved left
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(0, 1, new Cell(2));
+
+        // Move the board right
+        board.moveRight();
+
+        // After merging, the rightmost cell should be 4 and score increased by 4
+        assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
+
+    }
+    @Test
+    void moveRightDoesNotMergeDifferentTilesTest() {
+        clearBoard(board);
+
+        // Place two different tiles next to each other
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(0, 1, new Cell(4));
+
+        // Move the board right
+        board.moveRight();
+
+        // The tiles should not merge, they should remain in their positions
+        assertEquals(2, board.getCell(0, board.getSize() - 2).getValue());
+        assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
+    }
+      
     // Hashcode Board test
     @Test
     public void testHashcodeBoard() {
@@ -180,4 +287,5 @@ class BoardTest {
         assertEquals(b1.hashCode(), board.hashCode());
         assertNotEquals(b2.hashCode(), board.hashCode());
     }
+  
 }
