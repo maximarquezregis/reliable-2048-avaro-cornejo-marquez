@@ -39,4 +39,9 @@ class BoardTest {
         assertTrue(board.getCell(0, 0).getValue() == 2);
     }
 
+    @Test
+    void getScoreTest() {
+        assertTrue(board.getScore() >= 0);
+    }
+
 }
