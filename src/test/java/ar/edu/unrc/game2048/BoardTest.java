@@ -2,6 +2,8 @@ package ar.edu.unrc.game2048;
 
 import org.junit.jupiter.api.Test;
 
+import ar.edu.unrc.game2048.Board.Position;
+
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -18,19 +20,22 @@ class BoardTest {
         board = new Board();
     }
 
-    @Test
-    void moveDownChangeTheBoardTest() {
-        assertTrue(board.moveDown());
-    }
-
-    @Test
-    void moveLeftChangeTheBoardTest() {
-        assertTrue(board.moveLeft());
+    void clearBoard(Board b) {
+        // Clear board to a controlled state
+        for (int r = 0; r < b.getSize(); r++) {
+            for (int c = 0; c < b.getSize(); c++) {
+                b.setCell(r, c, Cell.EMPTY);
+            }
+        }
     }
 
     @Test
     void getEmptyPositionsReturnsCorrectListTest() {
         assertTrue(board.getEmptyPositions().size() > 0);
+        
+        // Clear the board and see if it is empty
+        clearBoard(board);
+        assertEquals(16, board.getEmptyPositions().size());
     }
 
     @Test
@@ -57,5 +62,77 @@ class BoardTest {
         Position pos1 = new Position(1, 2);
         Position pos2 = new Position(1, 2);
         assertEquals(pos1.hashCode(), pos2.hashCode());
+    }
+
+    // Move DOWN tests
+    @Test
+    void moveDownChangeTheBoardTest() {
+        assertTrue(board.moveDown());
+    }
+
+    @Test
+    void moveDownMovesTileFromTopToBottomTest() {
+        clearBoard(board);
+
+        // Place a single tile at the top of the first column
+        board.setCell(0, 0, new Cell(2));
+
+        boolean moved = board.moveDown();
+
+        // Expect the tile to have moved to the bottom of the column
+        assertTrue(moved);
+        assertEquals(2, board.getCell(board.getSize() - 1, 0).getValue());
+    }
+
+    @Test
+    void moveDownMergesTilesAndIncrementsScoreTest() {
+        clearBoard(board);
+
+        // Place two equal tiles so they should merge when moved down
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(1, 0, new Cell(2));
+
+        boolean moved = board.moveDown();
+
+        // After merging, bottom cell should be 4 and score increased by 4
+        assertTrue(moved);
+        assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
+        assertTrue(board.getScore() >= 4);
+    }
+
+    // Move LEFT tests
+    @Test
+    void moveLeftChangeTheBoardTest() {
+        assertTrue(board.moveLeft());
+    }
+
+    @Test
+    void moveLeftTileFromRightToLeftTest() {
+        clearBoard(board);
+
+        // Place a tile in a cell
+        board.setCell(0, 3, new Cell(2));
+        
+        // Move the board left
+        board.moveLeft();
+
+        // Check that the tile has moved to the leftmost position
+        assertEquals(2, board.getCell(0, 0).getValue());
+    }
+
+    @Test
+    void moveLeftMergesTilesAndIncrementsScoreTest() {
+        clearBoard(board);
+
+        // Place two equal tiles so they should merge when moved left
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(0, 1, new Cell(2));
+
+        // Move the board left
+        board.moveLeft();
+
+        // After merging, the leftmost cell should be 4 and score increased by 4
+        assertEquals(4, board.getCell(0, 0).getValue());
+        assertTrue(board.getScore() >= 4);
     }
 }
