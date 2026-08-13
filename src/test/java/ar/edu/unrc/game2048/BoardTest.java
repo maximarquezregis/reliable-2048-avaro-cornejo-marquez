@@ -116,55 +116,55 @@ class BoardTest {
         assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
     }
 
-    // Move LEFT tests
+    // Move RIGHT tests
     @Test
-    void moveLeftChangeTheBoardTest() {
-        assertTrue(board.moveLeft());
+    void moveRightChangeTheBoardTest() {
+        assertTrue(board.moveRight());
     }
 
     @Test
-    void moveLeftTileFromRightToLeftTest() {
+    void moveRightTileFromLeftToRightTest() {
         clearBoard(board);
 
         // Place a tile in a cell
-        board.setCell(0, 3, new Cell(2));
+        board.setCell(0, 0, new Cell(2));
         
-        // Move the board left
-        board.moveLeft();
+        // Move the board right
+        board.moveRight();
 
-        // Check that the tile has moved to the leftmost position
-        assertEquals(2, board.getCell(0, 0).getValue());
+        // Check that the tile has moved to the rightmost position
+        assertEquals(2, board.getCell(0, board.getSize() - 1).getValue());
     }
 
     @Test
-    void moveLeftMergesTilesAndIncrementsScoreTest() {
+    void moveRightMergesTilesAndIncrementsScoreTest() {
         clearBoard(board);
 
         // Place two equal tiles so they should merge when moved left
         board.setCell(0, 0, new Cell(2));
         board.setCell(0, 1, new Cell(2));
 
-        // Move the board left
-        board.moveLeft();
+        // Move the board right
+        board.moveRight();
 
-        // After merging, the leftmost cell should be 4 and score increased by 4
-        assertEquals(4, board.getCell(0, 0).getValue());
+        // After merging, the rightmost cell should be 4 and score increased by 4
+        assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
         assertTrue(board.getScore() >= 4);
     }
 
     @Test
-    void moveLeftDoesNotMergeDifferentTilesTest() {
+    void moveRightDoesNotMergeDifferentTilesTest() {
         clearBoard(board);
 
         // Place two different tiles next to each other
         board.setCell(0, 0, new Cell(2));
         board.setCell(0, 1, new Cell(4));
 
-        // Move the board left
-        board.moveLeft();
+        // Move the board right
+        board.moveRight();
 
         // The tiles should not merge, they should remain in their positions
-        assertEquals(2, board.getCell(0, 0).getValue());
-        assertEquals(4, board.getCell(0, 1).getValue());
+        assertEquals(2, board.getCell(0, board.getSize() - 2).getValue());
+        assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
     }
 }
