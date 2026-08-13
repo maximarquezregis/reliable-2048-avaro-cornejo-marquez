@@ -32,4 +32,11 @@ class BoardTest {
         assertTrue(board.getEmptyPositions().size() > 0);
     }
 
+    @Test
+    void setCellValueTest() {
+        Cell cell = new Cell(2);
+        board.setCell(0, 0, cell);
+        assertTrue(board.getCell(0, 0).getValue() == 2);
+    }
+
 }
