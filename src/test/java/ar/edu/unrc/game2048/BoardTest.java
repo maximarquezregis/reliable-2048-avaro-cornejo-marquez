@@ -44,4 +44,10 @@ class BoardTest {
         assertTrue(board.getScore() >= 0);
     }
 
+    @Test
+    void equalsTest() {
+        Board anotherBoard = new Board(board);
+        assertTrue(board.equals(anotherBoard));
+    }
+
 }
