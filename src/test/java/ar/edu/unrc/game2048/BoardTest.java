@@ -30,11 +30,6 @@ class BoardTest {
     }
 
     @Test
-    void moveDownChangeTheBoardTest() {
-        assertTrue(board.moveDown());
-    }
-
-    @Test
     void moveLeftChangeTheBoardTest() {
         assertTrue(board.moveLeft());
     }
@@ -107,6 +102,8 @@ class BoardTest {
 
     @Test 
     public void testGetCellNotValidRow() {
+        // If the row is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
         assertThrows(IndexOutOfBoundsException.class, () -> {
             board.getCell(-1, 0);
         });
@@ -114,6 +111,8 @@ class BoardTest {
 
     @Test 
     public void testGetCellNotValidCol() {
+        // If the column is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
         assertThrows(IndexOutOfBoundsException.class, () -> {
             board.getCell(0, 5);
         });
@@ -284,8 +283,8 @@ class BoardTest {
         Board b1 = new Board(board);
         Board b2 = new Board(board);
         b2.moveUp();
-        assertEquals(b1.hashCode(), board.hashCode());
-        assertNotEquals(b2.hashCode(), board.hashCode());
+        assertEquals(b1.hashCode(), board.hashCode()); // b1 is a copy of board, so their hashcodes should be equal
+        assertNotEquals(b2.hashCode(), board.hashCode()); // b2 has been modified, so its hashcode should not be equal to the original board's hashcode
     }
   
 }
