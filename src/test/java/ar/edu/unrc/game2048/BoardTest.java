@@ -100,6 +100,22 @@ class BoardTest {
         assertTrue(board.getScore() >= 4);
     }
 
+    @Test
+    void moveDownDoesNotMergeDifferentTilesTest() {
+        clearBoard(board);
+
+        // Place two different tiles in the same column
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(1, 0, new Cell(4));
+
+        boolean moved = board.moveDown();
+
+        // The tiles should not merge, they should remain in their positions
+        assertTrue(moved);
+        assertEquals(2, board.getCell(board.getSize() - 2, 0).getValue());
+        assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
+    }
+
     // Move LEFT tests
     @Test
     void moveLeftChangeTheBoardTest() {
@@ -134,5 +150,21 @@ class BoardTest {
         // After merging, the leftmost cell should be 4 and score increased by 4
         assertEquals(4, board.getCell(0, 0).getValue());
         assertTrue(board.getScore() >= 4);
+    }
+
+    @Test
+    void moveLeftDoesNotMergeDifferentTilesTest() {
+        clearBoard(board);
+
+        // Place two different tiles next to each other
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(0, 1, new Cell(4));
+
+        // Move the board left
+        board.moveLeft();
+
+        // The tiles should not merge, they should remain in their positions
+        assertEquals(2, board.getCell(0, 0).getValue());
+        assertEquals(4, board.getCell(0, 1).getValue());
     }
 }
