@@ -3,6 +3,7 @@ package ar.edu.unrc.game2048;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -50,4 +51,11 @@ class BoardTest {
         assertTrue(board.equals(anotherBoard));
     }
 
+    // Test for Position class
+    @Test
+    void hashCodeTest() {
+        Position pos1 = new Position(1, 2);
+        Position pos2 = new Position(1, 2);
+        assertEquals(pos1.hashCode(), pos2.hashCode());
+    }
 }
