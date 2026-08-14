@@ -551,6 +551,37 @@ public class Board {
         return sb.toString();
     }
 
+    /**
+     * Calculates the total number of non-empty cells on the board.
+     * A cell is considered non-empty if its value is greater than 0.
+     *
+     * @return the number of non-empty cells on the board
+     */
+    public int tileAmount() {
+        int amount = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (grid[i][j].getValue() > 0) { // Not empty cell
+                    amount++;
+                }
+            }
+        }
+
+        return amount;
+    }
+
+    /**
+     * Clears the board by setting all cells to their default empty state.
+     */
+    public void clearBoard() {
+        for(int i = 0; i < DEFAULT_SIZE; i++) {
+            for(int j = 0; j < DEFAULT_SIZE; j++) {
+                Cell auxCell = new Cell(0);
+                this.setCell(i, j, auxCell);
+            }
+        }
+    }
+
     // ==================== INNER CLASSES ====================
 
     /**
@@ -590,4 +621,5 @@ public class Board {
             return "(" + row + ", " + col + ")";
         }
     }
+
 }
