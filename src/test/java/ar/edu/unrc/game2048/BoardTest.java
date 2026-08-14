@@ -1,12 +1,16 @@
 package ar.edu.unrc.game2048;
 import java.util.ArrayList;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import ar.edu.unrc.game2048.Board.Position;
 import static ar.edu.unrc.game2048.Board.DEFAULT_SIZE;
+import ar.edu.unrc.game2048.Board.Position;
 
 class BoardTest {
 
@@ -28,6 +32,9 @@ class BoardTest {
 
     @Test
     void moveLeftChangeTheBoardTest() {
+        clearBoard(board);
+        board.setCell(0, 3, new Cell(2));
+        board.setCell(1, 2, new Cell(2));
         assertTrue(board.moveLeft());
     }
 
@@ -124,6 +131,9 @@ class BoardTest {
     // MOVE UP TESTS
     @Test
     public void testMoveUpChangeTheBoard() {
+        clearBoard(board);
+        board.setCell(2, 0, new Cell(2));
+        board.setCell(3, 1, new Cell(4));
         assertTrue(board.moveUp());
     }
 
@@ -174,6 +184,9 @@ class BoardTest {
     // Move DOWN tests
     @Test
     void moveDownChangeTheBoardTest() {
+        clearBoard(board);
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(1, 1, new Cell(4));
         assertTrue(board.moveDown());
     }
 
@@ -226,6 +239,9 @@ class BoardTest {
     // Move RIGHT tests
     @Test
     void moveRightChangeTheBoardTest() {
+        clearBoard(board);
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(1, 1, new Cell(4));
         assertTrue(board.moveRight());
     }
 
