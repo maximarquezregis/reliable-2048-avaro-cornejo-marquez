@@ -127,4 +127,16 @@ public class CellTest {
         boolean canMerge = c1.canMergeWith(c2);
         assertFalse(canMerge);
     }
+
+    @Test
+    public void isEmptyTrue() {
+        Cell c = new Cell(0);
+        assertTrue(c.isEmpty());
+    }
+
+    @Test
+    public void isEmptyFalse() {
+        Cell c = new Cell(2);
+        assertFalse(c.isEmpty());
+    }
 }
