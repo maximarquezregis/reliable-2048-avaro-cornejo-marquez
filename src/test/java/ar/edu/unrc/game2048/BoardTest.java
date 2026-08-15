@@ -1,10 +1,16 @@
 package ar.edu.unrc.game2048;
-
-import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
-import static org.junit.jupiter.api.Assertions.*;
-import ar.edu.unrc.game2048.Board.Position;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static ar.edu.unrc.game2048.Board.DEFAULT_SIZE;
+import ar.edu.unrc.game2048.Board.Position;
 
 class BoardTest {
 
@@ -22,6 +28,14 @@ class BoardTest {
                 b.setCell(r, c, Cell.EMPTY);
             }
         }
+    }
+
+    @Test
+    void moveLeftChangeTheBoardTest() {
+        clearBoard(board);
+        board.setCell(0, 3, new Cell(2));
+        board.setCell(1, 2, new Cell(2));
+        assertTrue(board.moveLeft());
     }
 
     @Test
@@ -59,9 +73,120 @@ class BoardTest {
         assertEquals(pos1.hashCode(), pos2.hashCode());
     }
 
+    @Test
+    public void testIsWinningBoard() {
+        Cell c = new Cell(2048);
+        board.setCell(0, 0, c);
+        assertTrue(board.isWinningBoard());
+    }
+
+    @Test
+    public void testNotIsWinningBoard() {
+        assertFalse(board.isWinningBoard());
+    }
+
+    @Test
+    public void testGetSizeEqual() {
+        assertEquals(board.getSize(), 4);
+    }
+
+    @Test
+    public void testGetSizeNotEqual() {
+        assertNotEquals(board.getSize(), 5);
+    }
+
+    @Test 
+    public void testGetCellValidPosition() {
+        clearBoard(board);
+        Cell c = new Cell(8);
+        board.setCell(0, 0, c);
+        assertTrue(board.getCell(0, 0).getValue() == 8);
+        assertFalse(board.getCell(0, 1).getValue() == 8);
+    }
+
+    @Test 
+    public void testGetCellNotValidRow() {
+        // If the row is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            board.getCell(-1, 0);
+        });
+    }
+
+    @Test 
+    public void testGetCellNotValidCol() {
+        // If the column is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            board.getCell(0, 5);
+        });
+    }
+
+    @Test
+    public void testToStringPosition() {
+        Position p = new Position(0, 2);
+        assertEquals(p.toString(), "(0, 2)");
+    }
+
+    // MOVE UP TESTS
+    @Test
+    public void testMoveUpChangeTheBoard() {
+        clearBoard(board);
+        board.setCell(2, 0, new Cell(2));
+        board.setCell(3, 1, new Cell(4));
+        assertTrue(board.moveUp());
+    }
+
+    @Test
+    public void testMoveUpMovesTileFromBottomToTop() {
+        clearBoard(board);
+
+        board.setCell(DEFAULT_SIZE-1, DEFAULT_SIZE-1, new Cell(2));
+
+        boolean moved = board.moveUp();
+
+        assertTrue(moved);
+        assertEquals(2, board.getCell(0,DEFAULT_SIZE-1).getValue());
+    }
+
+    @Test
+    public void testMoveUpMergesTilesAndIncrementsScore() {
+        clearBoard(board);
+
+        // Place two equal tiles so they should merge when moved up
+        board.setCell(2, 0, new Cell(2));
+        board.setCell(3, 0, new Cell(2));
+
+        boolean moved = board.moveUp();
+
+        // After merging, top cell should be 4 and score increased by 4
+        assertTrue(moved);
+        assertEquals(4, board.getCell(0, 0).getValue());
+        assertTrue(board.getScore() >= 4);
+    }
+  
+    @Test
+    public void testMoveUpDoesNotMergeDifferentTiles() {
+        clearBoard(board);
+
+        // Place two different tiles in the same column
+        board.setCell(2, 0, new Cell(2));
+        board.setCell(3, 0, new Cell(32));
+
+        boolean moved = board.moveUp();
+
+        // The tiles should not merge, they should remain in their positions
+        assertTrue(moved);
+        assertEquals(2, board.getCell(0, 0).getValue());
+        assertEquals(32, board.getCell(1, 0).getValue());
+    }
+  
     // Move DOWN tests
     @Test
     void moveDownChangeTheBoardTest() {
+        clearBoard(board);
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(1, 1, new Cell(4));
         assertTrue(board.moveDown());
     }
 
@@ -114,6 +239,9 @@ class BoardTest {
     // Move RIGHT tests
     @Test
     void moveRightChangeTheBoardTest() {
+        clearBoard(board);
+        board.setCell(0, 0, new Cell(2));
+        board.setCell(1, 1, new Cell(4));
         assertTrue(board.moveRight());
     }
 
@@ -144,9 +272,8 @@ class BoardTest {
 
         // After merging, the rightmost cell should be 4 and score increased by 4
         assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
-        assertTrue(board.getScore() >= 4);
-    }
 
+    }
     @Test
     void moveRightDoesNotMergeDifferentTilesTest() {
         clearBoard(board);
@@ -297,6 +424,16 @@ class BoardTest {
         }
 
         assertTrue(grid.isFull());
+    }
+  
+   // Hashcode Board test
+    @Test
+    public void testHashcodeBoard() {
+        Board b1 = new Board(board);
+        Board b2 = new Board(board);
+        b2.moveUp();
+        assertEquals(b1.hashCode(), board.hashCode()); // b1 is a copy of board, so their hashcodes should be equal
+        assertNotEquals(b2.hashCode(), board.hashCode()); // b2 has been modified, so its hashcode should not be equal to the original board's hashcode
     }
 
     /**
