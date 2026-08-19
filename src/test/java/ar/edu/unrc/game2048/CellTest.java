@@ -127,4 +127,30 @@ public class CellTest {
         boolean canMerge = c1.canMergeWith(c2);
         assertFalse(canMerge);
     }
+
+    @Test
+    public void isEmptyTrue() {
+        Cell c = new Cell(0);
+        assertTrue(c.isEmpty());
+    }
+
+    @Test
+    public void isEmptyFalse() {
+        Cell c = new Cell(2);
+        assertFalse(c.isEmpty());
+    }
+
+    @Test
+    public void hashCodeTest() {
+        Cell c1 = new Cell(2);
+        Cell c2 = new Cell(2);
+        assertEquals(c1.hashCode(), c2.hashCode());
+    }
+
+    @Test
+    public void hashCodeTestDifferent() {
+        Cell c1 = new Cell(2);
+        Cell c2 = new Cell(4);
+        assertNotEquals(c1.hashCode(), c2.hashCode());
+    }
 }
