@@ -1,6 +1,11 @@
 package ar.edu.unrc.game2048;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents the 2048 game board.
@@ -310,7 +315,7 @@ public class Board {
         for (int col = 0; col < size; col++) {
             // Create a list of cells from bottom to top (reverse order)
             List<Cell> column = new ArrayList<>();
-            for (int row = size - 1; row > 0; row--) {
+            for (int row = size - 1; row >= 0; row--) {
                 column.add(grid[row][col]);
             }
 
