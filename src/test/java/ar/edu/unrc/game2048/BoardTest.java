@@ -198,7 +198,6 @@ class BoardTest {
         board.setCell(0, 0, new Cell(2));
 
         boolean moved = board.moveDown();
-
         // Expect the tile to have moved to the bottom of the column
         assertTrue(moved);
         assertEquals(2, board.getCell(board.getSize() - 1, 0).getValue());
@@ -426,14 +425,35 @@ class BoardTest {
         assertTrue(grid.isFull());
     }
   
-   // Hashcode Board test
+    /**
+     * Verifies the hashcode method.
+     *
+     * The test creates a board, which is a copy of another board, and compares their hashcodes. 
+     * Must be equal.
+    */
     @Test
-    public void testHashcodeBoard() {
+    public void testHashcodeBoardEquals() {
         Board b1 = new Board(board);
-        Board b2 = new Board(board);
-        b2.moveUp();
         assertEquals(b1.hashCode(), board.hashCode()); // b1 is a copy of board, so their hashcodes should be equal
-        assertNotEquals(b2.hashCode(), board.hashCode()); // b2 has been modified, so its hashcode should not be equal to the original board's hashcode
+    }
+
+    /**
+     * Verifies the hashcode method.
+     *
+     * The test creates a board, which is a copy of another board, and compares their hashcodes. 
+     * Then, it modifies the copy and checks that their hashcodes are not equal anymore.
+    */
+    @Test
+    public void testHashcodeBoardNotEqual() {
+        Board b2 = new Board(board);
+        boolean moved = b2.moveUp(); // If, by coincidence, the pieces were already on row 0, board b would remain the same, and the hashcodes would also be the same.
+        if (moved) {
+            assertNotEquals(b2.hashCode(), board.hashCode());
+        } else {
+            // If the moveUp() didn't change the board, we can force a change by adding a new cell
+            b2.setCell(board.getSize() - 1, board.getSize() - 1, new Cell(2));
+            assertNotEquals(b2.hashCode(), board.hashCode());
+        }
     }
 
     /**
