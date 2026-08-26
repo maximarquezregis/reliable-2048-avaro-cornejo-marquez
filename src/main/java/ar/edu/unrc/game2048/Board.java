@@ -300,7 +300,9 @@ public class Board {
                 int position = reverse ? size - 1 - i : i;
                 int row = vertical ? position : line;
                 int col = vertical ? line : position;
-                cells.add(grid[row][col]);
+                if (!grid[row][col].isEmpty()) {
+                    cells.add(grid[row][col]);
+                }
             }
 
             List<Cell> movedCells = new ArrayList<>();
