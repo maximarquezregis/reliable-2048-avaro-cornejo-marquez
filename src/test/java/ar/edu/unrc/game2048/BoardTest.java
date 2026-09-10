@@ -99,7 +99,9 @@ class BoardTest {
     void hashCodeTest() {
         Position pos1 = new Position(1, 2);
         Position pos2 = new Position(1, 2);
+        Position pos3 = new Position(1, 1);
         assertEquals(pos1.hashCode(), pos2.hashCode());
+        assertNotEquals(pos3.hashCode(), pos1.hashCode());
     }
 
     @Test
