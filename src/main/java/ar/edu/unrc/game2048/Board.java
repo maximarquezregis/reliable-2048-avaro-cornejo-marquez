@@ -382,11 +382,13 @@ public class Board {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null ||
+             getClass() != o.getClass())
+            return false;
         Board board = (Board) o;
         return size == board.size &&
-                score == board.score &&
-                Arrays.deepEquals(grid, board.grid);
+               score == board.score &&
+               Arrays.deepEquals(grid, board.grid);
     }
 
     @Override

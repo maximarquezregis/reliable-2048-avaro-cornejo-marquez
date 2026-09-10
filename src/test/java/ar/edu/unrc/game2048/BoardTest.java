@@ -73,6 +73,27 @@ class BoardTest {
         assertTrue(board.equals(anotherBoard));
     }
 
+    @Test
+    void equalsSameReferenceTest() {
+        assertTrue(board.equals(board));
+    }
+
+    @Test
+    void equalsDifferentClassTest() {
+        assertFalse(board.equals(new Object()));
+    }
+
+    @Test
+    void equalsNullTest() {
+        assertFalse(board.equals(null));
+    }
+
+    @Test
+    void equalsDifferentSizeBoardTest(){
+        Board differentSizeBoard = new Board(5);
+        assertFalse(board.equals(differentSizeBoard));
+    }
+
     // Test for Position class
     @Test
     void hashCodeTest() {
