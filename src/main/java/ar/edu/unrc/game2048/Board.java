@@ -356,7 +356,7 @@ public class Board {
     private boolean addRandomTile() {
         Set<Position> empty = getEmptyPositions();
         if (empty.isEmpty()) {
-            return false;
+            throw new IllegalStateException("Board is full, no empty positions available.");
         }
 
         // Choose random position
