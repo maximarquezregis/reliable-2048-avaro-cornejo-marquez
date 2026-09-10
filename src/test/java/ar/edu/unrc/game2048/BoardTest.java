@@ -124,10 +124,19 @@ class BoardTest {
         assertNotEquals(board.getSize(), 5);
     }
 
+    // Board constructor tests
+
     @Test 
-    public void testBoardConstruct() {
+    public void testBoardConstructorSizeNegative() {
         assertThrows(IllegalArgumentException.class, () -> {
             Board b = new Board(-1);
+        });
+    }
+
+    @Test 
+    public void testBoardConstructorSizeZero() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Board b = new Board(0);
         });
     }
 
