@@ -1,8 +1,12 @@
 package ar.edu.unrc.game2048;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Cell Tests")
 class CellTest {
@@ -140,9 +144,25 @@ class CellTest {
     }
 
     @Test
-    public void testCanMergeOneCellEmpty() {
+    public void testCanMergeC1Empty() {
         Cell c1 = new Cell(0);
         Cell c2 = new Cell(8);
+        boolean canMerge = c1.canMergeWith(c2);
+        assertFalse(canMerge);
+    }
+
+    @Test
+    public void testCanMergeC2Empty() {
+        Cell c1 = new Cell(8);
+        Cell c2 = new Cell(0);
+        boolean canMerge = c1.canMergeWith(c2);
+        assertFalse(canMerge);
+    }
+
+    @Test
+    public void testCanMergeBothCellsEmpty() {
+        Cell c1 = new Cell(0);
+        Cell c2 = new Cell(0);
         boolean canMerge = c1.canMergeWith(c2);
         assertFalse(canMerge);
     }

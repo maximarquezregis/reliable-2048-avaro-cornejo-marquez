@@ -96,6 +96,13 @@ class BoardTest {
     }
 
     @Test 
+    public void testBoardConstruct() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Board b = new Board(-1);
+        });
+    }
+
+    @Test 
     public void testGetCellValidPosition() {
         clearBoard(board);
         Cell c = new Cell(8);
@@ -105,7 +112,7 @@ class BoardTest {
     }
 
     @Test 
-    public void testGetCellNotValidRow() {
+    public void testGetCellNotValidRowNegative() {
         // If the row is out of bounds, the `validatePosition` method, 
         // used internally by the `getCell` method, throws an exception
         assertThrows(IndexOutOfBoundsException.class, () -> {
@@ -114,13 +121,32 @@ class BoardTest {
     }
 
     @Test 
-    public void testGetCellNotValidCol() {
+    public void testGetCellNotValidRowGreater() {
+        // If the row is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            board.getCell(5, 0);
+        });
+    }
+
+    @Test 
+    public void testGetCellNotValidColGreater() {
         // If the column is out of bounds, the `validatePosition` method, 
         // used internally by the `getCell` method, throws an exception
         assertThrows(IndexOutOfBoundsException.class, () -> {
             board.getCell(0, 5);
         });
     }
+
+    @Test 
+    public void testGetCellNotValidColNegative() {
+        // If the column is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            board.getCell(0, -1);
+        });
+    }
+
 
     @Test
     public void testToStringPosition() {
@@ -147,6 +173,17 @@ class BoardTest {
 
         assertTrue(moved);
         assertEquals(2, board.getCell(0,DEFAULT_SIZE-1).getValue());
+    }
+
+    @Test
+    public void testMoveUpMovesTileFromBottomToTopNotMoved() {
+        clearBoard(board);
+
+        board.setCell(0, 0, new Cell(2));
+
+        boolean moved = board.moveUp();
+
+        assertFalse(moved);
     }
 
     @Test
@@ -235,6 +272,17 @@ class BoardTest {
         assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
     }
 
+    @Test
+    public void testMoveDownMovesTileFromTopToBottomNotMoved() {
+        clearBoard(board);
+
+        board.setCell(DEFAULT_SIZE-1, 1, new Cell(2));
+
+        boolean moved = board.moveDown();
+
+        assertFalse(moved);
+    }
+
     // Move RIGHT tests
     @Test
     void moveRightChangeTheBoardTest() {
@@ -289,6 +337,17 @@ class BoardTest {
         assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
     }
 
+    @Test
+    public void testMoveRightMovesTileFromLeftToRightNotMoved() {
+        clearBoard(board);
+
+        board.setCell(1, DEFAULT_SIZE-1, new Cell(2));
+
+        boolean moved = board.moveRight();
+
+        assertFalse(moved);
+    }
+
     /**
      * Tests the moveLeft method.
      * Verifies that the total number of non-empty cells matches the expected,
@@ -329,6 +388,24 @@ class BoardTest {
         grid.moveLeft();
 
         assertEquals(tileAmountExpected, grid.tileAmount());
+    }
+
+    @Test
+    public void testMoveLeftMovesTileFromRightToLeftNotMoved() {
+        clearBoard(board);
+
+        board.setCell(1, 0, new Cell(2));
+
+        boolean moved = board.moveLeft();
+
+        assertFalse(moved);
+    }
+
+    @Test 
+    public void testNotEmptyPositions(){
+        assertThrows(IllegalStateException.class, () -> {
+            Board b = new Board(1);
+        });
     }
 
     /**
