@@ -105,7 +105,7 @@ class BoardTest {
     }
 
     @Test 
-    public void testGetCellNotValidRow() {
+    public void testGetCellNotValidRowNegative() {
         // If the row is out of bounds, the `validatePosition` method, 
         // used internally by the `getCell` method, throws an exception
         assertThrows(IndexOutOfBoundsException.class, () -> {
@@ -114,13 +114,32 @@ class BoardTest {
     }
 
     @Test 
-    public void testGetCellNotValidCol() {
+    public void testGetCellNotValidRowGreater() {
+        // If the row is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            board.getCell(5, 0);
+        });
+    }
+
+    @Test 
+    public void testGetCellNotValidColGreater() {
         // If the column is out of bounds, the `validatePosition` method, 
         // used internally by the `getCell` method, throws an exception
         assertThrows(IndexOutOfBoundsException.class, () -> {
             board.getCell(0, 5);
         });
     }
+
+    @Test 
+    public void testGetCellNotValidColNegative() {
+        // If the column is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            board.getCell(0, -1);
+        });
+    }
+
 
     @Test
     public void testToStringPosition() {
