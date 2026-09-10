@@ -401,6 +401,13 @@ class BoardTest {
         assertFalse(moved);
     }
 
+    @Test 
+    public void testNotEmptyPositions(){
+        assertThrows(IllegalStateException.class, () -> {
+            Board b = new Board(1);
+        });
+    }
+
     /**
      * Tests the isLosingBoard method when the board contains only empty cells.
      */
