@@ -89,6 +89,29 @@ class CellTest {
     }
 
     /**
+     * Test method equals
+     * equals with null value
+     */
+    @Test
+    public void testEqualsWithNotNull(){
+        Cell cell1 = new Cell(2);
+
+        assertFalse(cell1.equals(null));
+    }
+
+    /**
+     * Test method equals
+     * equals with different class value
+     */
+    @Test
+    public void testEqualsWithDifferentClassCell(){
+        Cell cell1 = new Cell(2);
+        Integer n = 8;
+
+        assertFalse(cell1.equals(n));
+    }
+
+    /**
      * Test method toString
      * toString with 0
      */

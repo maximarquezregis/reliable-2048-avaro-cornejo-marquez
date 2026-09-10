@@ -374,6 +374,74 @@ class BoardTest {
     }
 
     /**
+     * Tests the isLosingBoard method when the board isn't full.
+     */
+    @Test
+    public void testIsLosingBoardWithNotFullBoard() {
+        Board grid = new Board();
+        grid.clearBoard();
+
+        int gridSize = grid.getSize();
+
+        // create cells with different values so they can't be merged
+        ArrayList<Cell> list = new ArrayList<>(gridSize);
+        list.add(new Cell(2));
+        list.add(new Cell(4));
+        list.add(new Cell(8));
+        list.add(new Cell(16));
+
+        // insert cells in row 0 and 2 in ascending order
+        for (int c = 0; c < gridSize; c++) {
+            grid.setCell(0, c, list.get(c));
+            grid.setCell(2, c, list.get(c));
+        }
+
+        // insert cells in row 1 and 3 in descending order
+        for (int c = 0; c < gridSize; c++) {
+            grid.setCell(1, c, list.get(gridSize - c - 1));
+            grid.setCell(3, c, list.get(gridSize - c - 1));
+        }
+
+        grid.setCell(0, 3, list.get(2)); // cell(8)
+
+        assertFalse(grid.isLosingBoard());
+    }
+
+    /**
+     * Tests the isLosingBoard method when the board isn't full.
+     */
+    @Test
+    public void testIsLosingBoardWithNotFullBoard2() {
+        Board grid = new Board();
+        grid.clearBoard();
+
+        int gridSize = grid.getSize();
+
+        // create cells with different values so they can't be merged
+        ArrayList<Cell> list = new ArrayList<>(gridSize);
+        list.add(new Cell(2));
+        list.add(new Cell(4));
+        list.add(new Cell(8));
+        list.add(new Cell(16));
+
+        // insert cells in row 0 and 2 in ascending order
+        for (int c = 0; c < gridSize; c++) {
+            grid.setCell(0, c, list.get(c));
+            grid.setCell(2, c, list.get(c));
+        }
+
+        // insert cells in row 1 and 3 in descending order
+        for (int c = 0; c < gridSize; c++) {
+            grid.setCell(1, c, list.get(gridSize - c - 1));
+            grid.setCell(3, c, list.get(gridSize - c - 1));
+        }
+
+        grid.setCell(3, 0, list.get(0)); // cell(1)
+
+        assertFalse(grid.isLosingBoard());
+    }
+
+    /**
      * Tests the hasEmptyCells method with a grid with empty cells.
      */
     @Test
@@ -531,12 +599,62 @@ class BoardTest {
     /**
      * Tests the equals method of the `Board.Position` class.
      *
+     * This test verifies method equals with the same Position returns true;
+     */
+    @Test
+    public void testSamePosition() {
+        Board.Position p1 = new Board.Position(0, 1);
+
+        assertTrue(p1.equals(p1));
+    }
+
+    /**
+     * Tests the equals method of the `Board.Position` class.
+     *
+     * This test verifies method equals with a null value returns false;
+     */
+    @Test
+    public void testNullPosition() {
+        Board.Position p1 = new Board.Position(0, 1);
+
+        assertFalse(p1.equals(null));
+    }
+
+    /**
+     * Tests the equals method of the `Board.Position` class.
+     *
+     * This test verifies method equals with a different class value returns false;
+     */
+    @Test
+    public void testDifferentClassPosition() {
+        Board.Position p1 = new Board.Position(0, 1);
+        Integer n = 8;
+
+        assertFalse(p1.equals(n));
+    }
+
+    /**
+     * Tests the equals method of the `Board.Position` class.
+     *
      * This test verifies that method equals with two Positions with not equal values return false;
      */
     @Test
     public void testEqualsDifferentPositions() {
         Board.Position p1 = new Board.Position(0, 1);
         Board.Position p2 = new Board.Position(2, 3);
+
+        assertFalse(p1.equals(p2));
+    }
+
+    /**
+     * Tests the equals method of the `Board.Position` class.
+     *
+     * This test verifies that method equals with two Positions with not equal values return false;
+     */
+    @Test
+    public void testEqualsDifferentPositions2() {
+        Board.Position p1 = new Board.Position(0, 1);
+        Board.Position p2 = new Board.Position(0, 3);
 
         assertFalse(p1.equals(p2));
     }
