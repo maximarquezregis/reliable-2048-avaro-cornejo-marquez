@@ -96,6 +96,13 @@ class BoardTest {
     }
 
     @Test 
+    public void testBoardConstruct() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Board b = new Board(-1);
+        });
+    }
+
+    @Test 
     public void testGetCellValidPosition() {
         clearBoard(board);
         Cell c = new Cell(8);
