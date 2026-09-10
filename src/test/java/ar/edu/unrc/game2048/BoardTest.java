@@ -176,6 +176,17 @@ class BoardTest {
     }
 
     @Test
+    public void testMoveUpMovesTileFromBottomToTopNotMoved() {
+        clearBoard(board);
+
+        board.setCell(0, 0, new Cell(2));
+
+        boolean moved = board.moveUp();
+
+        assertFalse(moved);
+    }
+
+    @Test
     public void testMoveUpMergesTilesAndIncrementsScore() {
         clearBoard(board);
 
@@ -261,6 +272,17 @@ class BoardTest {
         assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
     }
 
+    @Test
+    public void testMoveDownMovesTileFromTopToBottomNotMoved() {
+        clearBoard(board);
+
+        board.setCell(DEFAULT_SIZE-1, 1, new Cell(2));
+
+        boolean moved = board.moveDown();
+
+        assertFalse(moved);
+    }
+
     // Move RIGHT tests
     @Test
     void moveRightChangeTheBoardTest() {
@@ -315,6 +337,17 @@ class BoardTest {
         assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
     }
 
+    @Test
+    public void testMoveRightMovesTileFromLeftToRightNotMoved() {
+        clearBoard(board);
+
+        board.setCell(1, DEFAULT_SIZE-1, new Cell(2));
+
+        boolean moved = board.moveRight();
+
+        assertFalse(moved);
+    }
+
     /**
      * Tests the moveLeft method.
      * Verifies that the total number of non-empty cells matches the expected,
@@ -355,6 +388,17 @@ class BoardTest {
         grid.moveLeft();
 
         assertEquals(tileAmountExpected, grid.tileAmount());
+    }
+
+    @Test
+    public void testMoveLeftMovesTileFromRightToLeftNotMoved() {
+        clearBoard(board);
+
+        board.setCell(1, 0, new Cell(2));
+
+        boolean moved = board.moveLeft();
+
+        assertFalse(moved);
     }
 
     /**
