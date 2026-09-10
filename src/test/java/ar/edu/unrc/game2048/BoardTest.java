@@ -55,6 +55,14 @@ class BoardTest {
     }
 
     @Test
+    void setCellValueNullCellThrowsException() {
+        // If the cell is null, the `validatePosition` method, used internally by the `setCell` method, throws an exception
+        assertThrows(IllegalArgumentException.class, () -> {
+            board.setCell(0, 0, null);
+        });
+    }
+
+    @Test
     void getScoreTest() {
         assertTrue(board.getScore() >= 0);
     }
