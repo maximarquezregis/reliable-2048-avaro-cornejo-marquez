@@ -28,6 +28,13 @@ class CellTest {
         assertEquals(2, cell2.getValue());
     }
 
+    @Test
+    public void testInvalidCellNegativeValue() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            new Cell(-2);
+        });
+    }
+    
     /**
      * Test method mergeWith
      * mergeWith invocated with equal cells must return a new cell with the initial cell value doubled.

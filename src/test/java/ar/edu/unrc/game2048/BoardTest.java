@@ -55,6 +55,14 @@ class BoardTest {
     }
 
     @Test
+    void setCellValueNullCellThrowsException() {
+        // If the cell is null, the `validatePosition` method, used internally by the `setCell` method, throws an exception
+        assertThrows(IllegalArgumentException.class, () -> {
+            board.setCell(0, 0, null);
+        });
+    }
+
+    @Test
     void getScoreTest() {
         assertTrue(board.getScore() >= 0);
     }
@@ -63,6 +71,27 @@ class BoardTest {
     void equalsTest() {
         Board anotherBoard = new Board(board);
         assertTrue(board.equals(anotherBoard));
+    }
+
+    @Test
+    void equalsSameReferenceTest() {
+        assertTrue(board.equals(board));
+    }
+
+    @Test
+    void equalsDifferentClassTest() {
+        assertFalse(board.equals(new Object()));
+    }
+
+    @Test
+    void equalsNullTest() {
+        assertFalse(board.equals(null));
+    }
+
+    @Test
+    void equalsDifferentSizeBoardTest(){
+        Board differentSizeBoard = new Board(5);
+        assertFalse(board.equals(differentSizeBoard));
     }
 
     // Test for Position class
