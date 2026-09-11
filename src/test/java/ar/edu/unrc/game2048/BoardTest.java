@@ -161,22 +161,78 @@ class BoardTest {
     }
 
     @Test 
-    public void testGetCellNotValidRowGreater() {
+    public void testGetCellNotValidRowSize() {
         // If the row is out of bounds, the `validatePosition` method, 
         // used internally by the `getCell` method, throws an exception
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            board.getCell(5, 0);
-        });
+        IndexOutOfBoundsException exception = assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> board.getCell(board.getSize(), 0)
+        );
+
+        assertEquals(
+            String.format(
+                "Position (%d, %d) is out of bounds for board size %d",
+                board.getSize(), 0, board.getSize()
+            ),
+            exception.getMessage()
+        );
     }
 
     @Test 
-    public void testGetCellNotValidColGreater() {
+    public void testGetCellNotValidRowGreaterSize() {
+        // If the row is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
+        IndexOutOfBoundsException exception = assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> board.getCell(board.getSize()+1, 0)
+        );
+
+        assertEquals(
+            String.format(
+                "Position (%d, %d) is out of bounds for board size %d",
+                board.getSize()+1, 0, board.getSize()
+            ),
+            exception.getMessage()
+        );
+    }
+
+
+    @Test
+    public void testGetCellNotValidColSize() {
         // If the column is out of bounds, the `validatePosition` method, 
         // used internally by the `getCell` method, throws an exception
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            board.getCell(0, 5);
-        });
+        IndexOutOfBoundsException exception = assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> board.getCell(0, board.getSize())
+        );
+
+        assertEquals(
+            String.format(
+                "Position (%d, %d) is out of bounds for board size %d",
+                0, board.getSize(), board.getSize()
+            ),
+            exception.getMessage()
+        );
     }
+
+    @Test 
+    public void testGetCellNotValidColGreaterSize() {
+        // If the column is out of bounds, the `validatePosition` method, 
+        // used internally by the `getCell` method, throws an exception
+        IndexOutOfBoundsException exception = assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> board.getCell(0, board.getSize()+1)
+        );
+
+        assertEquals(
+            String.format(
+                "Position (%d, %d) is out of bounds for board size %d",
+                0, board.getSize()+1, board.getSize()
+            ),
+            exception.getMessage()
+        );
+    }
+
 
     @Test 
     public void testGetCellNotValidColNegative() {
