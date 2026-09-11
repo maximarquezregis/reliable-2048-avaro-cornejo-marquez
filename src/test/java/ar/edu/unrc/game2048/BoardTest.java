@@ -62,6 +62,28 @@ class BoardTest {
         });
     }
 
+    /**
+     * Tests the `setCell` method with an invalid position.
+     *
+     * This test ensures that the `setCell` method throws an `IndexOutOfBoundsException`
+     * when attempting to set a cell at an invalid position.
+     */
+    @Test
+    void setCellWithInvalidPosition() {
+        IndexOutOfBoundsException exception = assertThrows(
+                IndexOutOfBoundsException.class,
+                () -> board.setCell(-1, -1, new Cell(2))
+        );
+
+        assertEquals(
+                String.format(
+                        "Position (%d, %d) is out of bounds for board size %d",
+                        -1, -1, board.getSize()
+                ),
+                exception.getMessage()
+        );
+    }
+
     @Test
     void getScoreTest() {
         assertTrue(board.getScore() >= 0);
