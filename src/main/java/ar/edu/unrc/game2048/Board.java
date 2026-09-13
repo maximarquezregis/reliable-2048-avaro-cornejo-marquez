@@ -322,7 +322,7 @@ public class Board {
             }
 
             // Add empty cells to complete the row or column.
-            while (movedCells.size() < size) {
+            while (movedCells.size() != size) {
                 movedCells.add(Cell.EMPTY);
             }
 
