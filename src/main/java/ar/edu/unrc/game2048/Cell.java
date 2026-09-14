@@ -122,4 +122,24 @@ public final class Cell {
     public String toString() {
         return value == 0 ? "." : String.valueOf(value);
     }
+
+    /**
+     * Checks the representation invariant for this cell.
+     * The representation invariant is that the cell's value is a non-negative even number.
+     *  
+     * @return true if the representation invariant holds, false otherwise
+     */
+    public boolean repOk() {
+        if (this.value < 0) {
+            return false; 
+        } else {
+            if (this.value == 0) {
+                return true; 
+            } else if (this.value % 2 != 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
 }
