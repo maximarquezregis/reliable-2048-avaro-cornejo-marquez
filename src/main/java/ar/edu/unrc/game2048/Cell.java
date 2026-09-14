@@ -130,16 +130,25 @@ public final class Cell {
      * @return true if the representation invariant holds, false otherwise
      */
     public boolean repOk() {
-        if (this.value < 0) {
+        if (value < 0 || value > 2048) {
             return false; 
         } else {
-            if (this.value == 0) {
+            if (value == 0) {
                 return true; 
-            } else if (this.value % 2 != 0) {
-                return false;
-            } else {
+            } else if (isPowerOf2(value)) {
                 return true;
             }
+            return false;
         }
+    }
+
+    /**
+     * Checks if a number is a power of two.
+     * A number is a power of two if it is greater than zero and has exactly one bit set to 1.
+     *  
+     * @return true if the number is a power of two, false otherwise
+     */
+    private boolean isPowerOf2(int n) {
+        return (n & (n - 1)) == 0;
     }
 }
