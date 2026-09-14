@@ -230,6 +230,13 @@ class CellTest {
         assertTrue(c.repOk());
     }
 
+    // Test for repOk method with value 2048
+    @Test 
+    public void testRepOkValid2048() {
+        Cell c = new Cell(2048);
+        assertTrue(c.repOk());
+    }
+
     // Test for repOk method with value 0
     @Test 
     public void testRepOkValidZero() {
