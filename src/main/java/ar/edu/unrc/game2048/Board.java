@@ -456,6 +456,25 @@ public class Board {
         }
     }
 
+    /**
+     * Checks the representation invariant of the board. The invariant ensures that
+     * all cells comply with the Cell.repOk () method.
+     *
+     * @return true if the representation invariant holds for all cells in the board,
+     *         false otherwise
+     */
+    public boolean repOk() {
+        for (int i = 0; i < this.getSize(); i++) {
+            for (int j = 0; j < this.getSize(); j++) {
+                if (!this.getCell(i, j).repOk()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     // ==================== INNER CLASSES ====================
 
     /**

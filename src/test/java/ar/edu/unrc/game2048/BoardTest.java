@@ -779,6 +779,74 @@ class BoardTest {
     }
 
     /**
+     * Verifies the `repOk` method of the `Board` class.
+     *
+     * This test ensures that the internal representation of a `Board` object
+     * satisfies its class invariants.
+     */
+    @Test
+    public void testRepOk() {
+        Board grid = new Board();
+        grid.clearBoard();
+
+        int gridSize = grid.getSize();
+
+        ArrayList<Cell> list = new ArrayList<>(gridSize);
+        list.add(new Cell(2));
+        list.add(new Cell(4));
+        list.add(new Cell(8));
+        list.add(new Cell(16));
+
+        for (int c = 0; c < gridSize; c++) {
+            grid.setCell(0, c, list.get(c));
+            grid.setCell(2, c, list.get(c));
+        }
+
+        for (int c = 0; c < gridSize; c++) {
+            grid.setCell(1, c, list.get(gridSize - c - 1));
+            grid.setCell(3, c, list.get(gridSize - c - 1));
+        }
+
+        grid.setCell(2,3, Cell.EMPTY);
+
+        assertTrue(grid.repOk());
+    }
+
+    /**
+     * Tests the `repOk` method of the `Board` class with an invalid board configuration.
+     *
+     * This test sets up a board with cells that violate the class invariants,
+     * and ensures repOk returns false for that instance.
+     */
+    @Test
+    public void testRepOkInvalid() {
+        Board grid = new Board();
+        grid.clearBoard();
+
+        int gridSize = grid.getSize();
+
+        ArrayList<Cell> list = new ArrayList<>(gridSize);
+        list.add(new Cell(2));
+        list.add(new Cell(4));
+        list.add(new Cell(8));
+        list.add(new Cell(16));
+
+        for (int c = 0; c < gridSize; c++) {
+            grid.setCell(0, c, list.get(c));
+            grid.setCell(2, c, list.get(c));
+        }
+
+        for (int c = 0; c < gridSize; c++) {
+            grid.setCell(1, c, list.get(gridSize - c - 1));
+            grid.setCell(3, c, list.get(gridSize - c - 1));
+        }
+
+        grid.setCell(2,3, new Cell(3));
+
+        assertFalse(grid.repOk());
+    }
+
+    /**
      * Tests the equals method of the `Board.Position` class.
      *
      * This test verifies that method equals with two Positions with equal values return true;
