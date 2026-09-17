@@ -222,4 +222,40 @@ class CellTest {
         Cell c2 = new Cell(4);
         assertNotEquals(c1.hashCode(), c2.hashCode());
     }
+
+    // Test for repOk method
+    @Test 
+    public void testRepOkValid() {
+        Cell c = new Cell(8);
+        assertTrue(c.repOk());
+    }
+
+    // Test for repOk method with value 2048
+    @Test 
+    public void testRepOkValid2048() {
+        Cell c = new Cell(2048);
+        assertTrue(c.repOk());
+    }
+
+    // Test for repOk method with value 0
+    @Test 
+    public void testRepOkValidZero() {
+        Cell c = new Cell(0);
+        assertTrue(c.repOk());
+    }
+    
+    // Test for repOk method with value not a power of 2
+    @Test 
+    public void testRepOkNotValidMultipleOf2() {
+        Cell c = new Cell(3);
+        assertFalse(c.repOk());
+    }
+
+    // Test for repOk method with value greater than 2048
+    @Test 
+    public void testRepOkNotValidGreaterthan2048() {
+        Cell c = new Cell(4096);
+        assertFalse(c.repOk());
+    }
+
 }

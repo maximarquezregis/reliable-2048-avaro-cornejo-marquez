@@ -122,4 +122,33 @@ public final class Cell {
     public String toString() {
         return value == 0 ? "." : String.valueOf(value);
     }
+
+    /**
+     * Checks the representation invariant for this cell.
+     * The representation invariant is that the cell's value is a non-negative even number.
+     *  
+     * @return true if the representation invariant holds, false otherwise
+     */
+    public boolean repOk() {
+        if (value < 0 || value > 2048) {
+            return false; 
+        } else {
+            if (value == 0) {
+                return true; 
+            } else if (isPowerOf2(value)) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a number is a power of two.
+     * A number is a power of two if it is greater than zero and has exactly one bit set to 1.
+     *  
+     * @return true if the number is a power of two, false otherwise
+     */
+    private boolean isPowerOf2(int n) {
+        return (n & (n - 1)) == 0;
+    }
 }
