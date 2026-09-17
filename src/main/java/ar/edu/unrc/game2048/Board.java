@@ -1,5 +1,7 @@
 package ar.edu.unrc.game2048;
 
+import jdk.vm.ci.meta.Local;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -47,18 +49,17 @@ public class Board {
      * Game accumulated score.
      */
     private int score;
-
     /**
-     * Seed for addRandomTile()
+     * Random generator for addRandomTile()
      */
-    private int seed;
+    private static Random randomGen;
 
     /**
      * Creates a new board of the default size (4x4) with two random tiles.
      */
     public Board() {
         this(DEFAULT_SIZE);
-        this.seed = LocalDateTime.now().getNano();
+        this.randomGen = new Random(LocalDateTime.now().getNano());
     }
 
     /**
@@ -74,7 +75,7 @@ public class Board {
         this.size = size;
         this.grid = new Cell[size][size];
         this.score = 0;
-        this.seed = LocalDateTime.now().getNano();
+        this.randomGen = new Random(LocalDateTime.now().getNano());
         initializeEmpty();
         addRandomTile();
         addRandomTile();
@@ -94,7 +95,7 @@ public class Board {
         this.size = size;
         this.grid = new Cell[size][size];
         this.score = 0;
-        this.seed = seed;
+        this.randomGen = new Random(seed);
         initializeEmpty();
         addRandomTile();
         addRandomTile();
@@ -109,7 +110,7 @@ public class Board {
         this.size = other.size;
         this.grid = new Cell[size][size];
         this.score = other.score;
-        this.seed = other.seed;
+        this.randomGen = other.randomGen;
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
                 this.grid[r][c] = other.grid[r][c];
@@ -390,7 +391,6 @@ public class Board {
         }
 
         // Choose random position
-        Random randomGen = new Random(seed);
         int randomIndex = (int) (randomGen.nextDouble() * empty.size());
         Position pos = empty.stream().skip(randomIndex).findFirst().get();
 
