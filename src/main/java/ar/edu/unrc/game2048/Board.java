@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.Random;
 
 /**
  * Represents the 2048 game board.
@@ -47,10 +49,16 @@ public class Board {
     private int score;
 
     /**
+     * Seed for addRandomTile()
+     */
+    private int seed;
+
+    /**
      * Creates a new board of the default size (4x4) with two random tiles.
      */
     public Board() {
         this(DEFAULT_SIZE);
+        this.seed = LocalDateTime.now().getNano();
     }
 
     /**
@@ -66,6 +74,27 @@ public class Board {
         this.size = size;
         this.grid = new Cell[size][size];
         this.score = 0;
+        this.seed = LocalDateTime.now().getNano();
+        initializeEmpty();
+        addRandomTile();
+        addRandomTile();
+    }
+
+    /**
+     * Creates a new board of the specified size with two random tiles and a specified seed for addRandomTile().
+     *
+     * @param size the board size (must be > 0)
+     * @param seed the seed for addRandomTile()
+     * @throws IllegalArgumentException if size <= 0
+     */
+    public Board(int size, int seed) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Board size must be positive: " + size);
+        }
+        this.size = size;
+        this.grid = new Cell[size][size];
+        this.score = 0;
+        this.seed = seed;
         initializeEmpty();
         addRandomTile();
         addRandomTile();
@@ -80,6 +109,7 @@ public class Board {
         this.size = other.size;
         this.grid = new Cell[size][size];
         this.score = other.score;
+        this.seed = other.seed;
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
                 this.grid[r][c] = other.grid[r][c];
@@ -360,11 +390,12 @@ public class Board {
         }
 
         // Choose random position
-        int randomIndex = (int) (Math.random() * empty.size());
+        Random randomGen = new Random(seed);
+        int randomIndex = (int) (randomGen.nextDouble() * empty.size());
         Position pos = empty.stream().skip(randomIndex).findFirst().get();
 
         // 90% chance of 2, 10% chance of 4 (standard 2048 rules)
-        int value = Math.random() < 0.9 ? 2 : 4;
+        int value = randomGen.nextDouble() < 0.9 ? 2 : 4;
         grid[pos.row][pos.col] = new Cell(value);
 
         return true;
