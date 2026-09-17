@@ -29,6 +29,13 @@ class CellTest {
     }
 
     @Test
+    void testNotValidCell() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            new Cell(4096);
+        });
+    }
+
+    @Test
     public void testInvalidCellNegativeValue() {
         assertThrows(IllegalArgumentException.class, () -> {
             new Cell(-2);
@@ -52,12 +59,12 @@ class CellTest {
 
     /**
      * Test method mergeWith
-     * mergeWith invocated with not equal cells must return a new cell with the initial cell value doubled.
+     * mergeWith invocated with not equal cells must throw an IllegalArgumentException.
      */
     @Test
     public void testMergeWithDifferentValue() {
         Cell cell1 = new Cell(2);
-        Cell cell2 = new Cell(3);
+        Cell cell2 = new Cell(4);
 
         assertThrows(IllegalArgumentException.class, () -> {
             Cell result = cell1.mergeWith(cell2);
@@ -242,20 +249,6 @@ class CellTest {
     public void testRepOkValidZero() {
         Cell c = new Cell(0);
         assertTrue(c.repOk());
-    }
-    
-    // Test for repOk method with value not a power of 2
-    @Test 
-    public void testRepOkNotValidMultipleOf2() {
-        Cell c = new Cell(3);
-        assertFalse(c.repOk());
-    }
-
-    // Test for repOk method with value greater than 2048
-    @Test 
-    public void testRepOkNotValidGreaterthan2048() {
-        Cell c = new Cell(4096);
-        assertFalse(c.repOk());
     }
 
 }

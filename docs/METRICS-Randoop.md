@@ -29,13 +29,13 @@ After merging the `repOK()` implementation for `Cell` and `Board` (along with th
 | Suite | Number of Classes | Line Coverage | Mutation Coverage | Test Strength |
 | :---: | :---: | :---: | :---: | :---: |
 | Manual | 2 | 100% (176/176) | 98% (184/188) | 98% (184/188) |
-| Randoop | 2 | 92% (162/176) | 80% (151/188) | 92% (151/165) |
+| Randoop | 2 | 98% (191/194) | 96% (187/195) | 97% (187/192) |
 
 ### JaCoCo Report
 
 | Suite | Instructions | Branches | Complexity | Lines | Methods | Classes |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Manual | 100% (1114/1114) | 99% (175/176) | 128/129 | 100% (188/188) | 100% (42/42) | 100% (4/4) |
-| Randoop | 89% (993/1114) | 84% (147/174) | 107/129 | 93% (174/188) | 95% (40/42) | 100% (4/4) |
+| Randoop | 99% (1206/1212) | 97% (178/182) | 130/134 | 98% (203/206) | 100% (43/43) | 100% (4/4) |
 
 **repOK() and Randoop:** Randoop does indeed call `repOK()` naturally (as it is a boolean getter with no side effects) and kills almost all mutants in both classes—no game logic was required to exercise it, only varying the object's state. No invariant violations were found (no cases where `repOk()` unexpectedly returned `false` for an object constructed via the public API).
