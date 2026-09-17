@@ -35,7 +35,7 @@ After merging the `repOK()` implementation for `Cell` and `Board` (along with th
 
 | Suite | Instructions | Branches | Complexity | Lines | Methods | Classes |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Manual | 100% (1114/1114) | 99% (173/174) | 128/129 | 100% (188/188) | 100% (42/42) | 100% (4/4) |
+| Manual | 100% (1114/1114) | 99% (175/176) | 128/129 | 100% (188/188) | 100% (42/42) | 100% (4/4) |
 | Randoop | 89% (993/1114) | 84% (147/174) | 107/129 | 93% (174/188) | 95% (40/42) | 100% (4/4) |
 
 **repOK() and Randoop:** Randoop does indeed call `repOK()` naturally (as it is a boolean getter with no side effects) and kills almost all mutants in both classes—no game logic was required to exercise it, only varying the object's state. No invariant violations were found (no cases where `repOk()` unexpectedly returned `false` for an object constructed via the public API).

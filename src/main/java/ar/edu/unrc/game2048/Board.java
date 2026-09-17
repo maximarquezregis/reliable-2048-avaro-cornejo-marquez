@@ -1,15 +1,15 @@
 package ar.edu.unrc.game2048;
 
-import jdk.vm.ci.meta.Local;
-
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.time.LocalDateTime;
 import java.util.Random;
+import java.util.Set;
+
+import randoop.CheckRep;
 
 /**
  * Represents the 2048 game board.
@@ -59,7 +59,7 @@ public class Board {
      */
     public Board() {
         this(DEFAULT_SIZE);
-        this.randomGen = new Random(LocalDateTime.now().getNano());
+        randomGen = new Random(LocalDateTime.now().getNano());
     }
 
     /**
@@ -75,7 +75,7 @@ public class Board {
         this.size = size;
         this.grid = new Cell[size][size];
         this.score = 0;
-        this.randomGen = new Random(LocalDateTime.now().getNano());
+        randomGen = new Random(LocalDateTime.now().getNano());
         initializeEmpty();
         addRandomTile();
         addRandomTile();
@@ -95,7 +95,7 @@ public class Board {
         this.size = size;
         this.grid = new Cell[size][size];
         this.score = 0;
-        this.randomGen = new Random(seed);
+        randomGen = new Random(seed);
         initializeEmpty();
         addRandomTile();
         addRandomTile();
@@ -110,7 +110,7 @@ public class Board {
         this.size = other.size;
         this.grid = new Cell[size][size];
         this.score = other.score;
-        this.randomGen = other.randomGen;
+        randomGen = new Random(LocalDateTime.now().getNano());
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
                 this.grid[r][c] = other.grid[r][c];
@@ -494,6 +494,7 @@ public class Board {
      * @return true if the representation invariant holds for all cells in the board,
      *         false otherwise
      */
+    @CheckRep
     public boolean repOk() {
         for (int i = 0; i < this.getSize(); i++) {
             for (int j = 0; j < this.getSize(); j++) {

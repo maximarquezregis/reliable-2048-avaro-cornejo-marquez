@@ -921,4 +921,39 @@ class BoardTest {
 
         assertFalse(p1.equals(p2));
     }
+
+    @Test
+    public void testConstructorBoardWithSeed() {
+        Board board = new Board(DEFAULT_SIZE, 0);
+        assertEquals(board.getCell(1, DEFAULT_SIZE - 1).getValue(), 2);
+    }
+
+    /**
+     * Tests the constructor of the `Board` class with an invalid size.
+     *
+     * This test verifies that the constructor throws an `IllegalArgumentException` when a zero size is provided.
+     *
+     * @throws IllegalArgumentException if the size is zero
+     */
+    @Test
+    public void testConstructorBoardWithSeedNotValidZero() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Board board = new Board(0, 0);
+        });    
+    }
+
+    /**
+     * Tests the constructor of the `Board` class with an invalid size.
+     *
+     * This test verifies that the constructor throws an `IllegalArgumentException` when a negative size is provided.
+     *
+     * @throws IllegalArgumentException if the size is negative
+     */
+    @Test
+    public void testConstructorBoardWithSeedNotValidZNegative() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Board board = new Board(-1, 0);
+        });    
+    }
+
 }
