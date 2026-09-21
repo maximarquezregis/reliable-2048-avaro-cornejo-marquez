@@ -32,3 +32,9 @@ Summary:
   FAIL        : 0/300
   UNRESOLVED  : 0/300
 ```
+
+Subsequently, taking advantage of the `repOk()` methods implemented in the `Cell` and `Board` classes, we added
+`repOk()` assertions to `MainCLI` in order to verify that the board always remains in a valid state after each move.
+We additionally re-ran the fuzzer with a range of different `min_length` and `max_length` values passed to
+`RandomFuzzer`. Under none of these configurations did we observe an error, a failed assertion, or any inconsistency
+in the resulting board states.
