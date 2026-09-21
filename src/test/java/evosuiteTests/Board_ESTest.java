@@ -3,7 +3,7 @@
  * Mon Sep 21 18:19:22 GMT 2026
  */
 
-package ar.edu.unrc.game2048;
+package evosuiteTests;
 
 import java.util.Set;
 
@@ -16,6 +16,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import ar.edu.unrc.game2048.Board;
+import ar.edu.unrc.game2048.Cell;
 
 @RunWith(EvoRunner.class) @EvoRunnerParameters(mockJVMNonDeterminism = true, useVFS = true, useVNET = true, resetStaticState = true, separateClassLoader = false, useJEE = true) 
 public class Board_ESTest extends Board_ESTest_scaffolding {
