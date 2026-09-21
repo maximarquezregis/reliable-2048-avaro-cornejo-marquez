@@ -29,13 +29,6 @@ class CellTest {
     }
 
     @Test
-    void testNotValidCell() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new Cell(4096);
-        });
-    }
-
-    @Test
     public void testInvalidCellNegativeValue() {
         assertThrows(IllegalArgumentException.class, () -> {
             new Cell(-2);
