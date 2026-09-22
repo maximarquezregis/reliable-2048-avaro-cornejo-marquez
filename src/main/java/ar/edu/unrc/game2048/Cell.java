@@ -39,9 +39,6 @@ public final class Cell {
         if (value != 0 && !isPowerOf2(value)) {
             throw new IllegalArgumentException("Cell value must be a power of two: " + value);
         }
-        if (value > 2048) {
-            throw new IllegalArgumentException("Cell value cannot exceed 2048: " + value);
-        }
         this.value = value;
     }
     
@@ -139,7 +136,7 @@ public final class Cell {
      */
     @CheckRep 
     public boolean repOk() {
-        if (value < 0 || value > 2048) {
+        if (value < 0) {
             return false; 
         } else {
             if (value == 0) {

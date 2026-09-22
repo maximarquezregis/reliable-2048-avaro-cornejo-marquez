@@ -31,11 +31,13 @@ public class MainCLI {
             if (board.isWinningBoard()) {
                 System.out.println("🎉 Congratulations! You reached 2048! 🎉");
                 System.out.println("You can continue playing or quit.");
+                assert board.repOk();
             }
             
             if (board.isLosingBoard()) {
                 System.out.println("💀 Game Over! No more moves available. 💀");
                 System.out.println("Final score: " + board.getScore());
+                assert board.repOk();
                 break;
             }
             
@@ -57,6 +59,8 @@ public class MainCLI {
                     System.out.println("Invalid input! Use W, A, S, D, or Q.");
                     continue;
             }
+            assert board.repOk();
+
             
             if (moved) {
                 System.out.println("Tile moved!");
