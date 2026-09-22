@@ -38,3 +38,30 @@ Subsequently, taking advantage of the `repOk()` methods implemented in the `Cell
 We additionally re-ran the fuzzer with a range of different `min_length` and `max_length` values passed to
 `RandomFuzzer`. Under none of these configurations did we observe an error, a failed assertion, or any inconsistency
 in the resulting board states.
+
+### 2.5 Record and Commit
+
+The fuzzer did not find any crashes or assertion failures in the CLI. All generated
+inputs were processed normally and the board remained valid according to `repOK()`.
+We also tested different input lengths, but none of them produced an unexpected
+termination or a timeout.
+
+While reviewing the invariants, we found a validation problem in the `Cell` class.
+The constructor and `repOK()` rejected values greater than `2048`, even though the
+player can continue playing after reaching the winning tile. Therefore, a value such
+as `4096` is valid and should not be rejected. We removed those validations and the
+tests that expected values greater than `2048` to be invalid.
+
+This problem was not detected by the fuzzer as a crash, because it required creating
+a specific cell value rather than only sending random moves through the CLI. The
+fuzzer was useful for checking the complete interaction with the game and for
+verifying the representation invariant after each move. EvoSuite and Randoop were
+more useful for exercising individual methods of `Board` and `Cell`, and they
+produced higher and more targeted coverage for those classes. On the other hand,
+they did not test the CLI flow in the same way as the fuzzer.
+
+For this reason, we consider that the three techniques complement each other. The
+fuzzer is useful for finding failures in the external interface, while EvoSuite and
+Randoop are better suited for exploring the internal classes and generating unit
+tests. In this phase, combining random input with `repOK()` gave us more confidence
+that the board stayed in a valid state during normal gameplay.
