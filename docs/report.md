@@ -18,11 +18,7 @@ The available PIT results were:
 | :---: | :---: | :---: | :---: |
 | Manual | 100% (176/176) | 98% (184/188) | 98% (184/188) |
 | Randoop | 98% (191/194) | 96% (187/195) | 97% (187/192) |
-| EvoSuite | Not recorded | Not recorded | Not recorded |
-
-Mutation results for EvoSuite were not included in the recorded metrics, so no
-value is reported for that suite. The EvoSuite tests did pass and achieved high
-JaCoCo coverage, but coverage and mutation score measure different things.
+| EvoSuite | 94% (180/192) | 87% (154/177) | 99% (154/156) |
 
 ## EvoSuite and Randoop
 
