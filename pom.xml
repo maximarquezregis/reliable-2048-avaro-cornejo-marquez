@@ -69,11 +69,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0</version>
-            </plugin>
 
             <plugin>
                 <groupId>org.pitest</groupId>
@@ -105,17 +100,6 @@
                         <format>XML</format>
                     </outputFormats>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.evosuite.plugins</groupId>
-                <artifactId>evosuite-maven-plugin</artifactId>
-                <version>${evosuiteVersion}</version>
-                <executions>
-                    <execution>
-                        <goals> <goal> prepare </goal> </goals>
-                        <phase> process-test-classes </phase>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
@@ -165,11 +149,6 @@
             <artifactId>junit-vintage-engine</artifactId>
             <version>${junit.vintage.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-launcher</artifactId>
-            <version>1.10.0</version>
         </dependency>
     </dependencies>
 </project>
