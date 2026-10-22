@@ -3,6 +3,7 @@ package ar.edu.unrc.game2048;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class DaikonTestTrace {
@@ -22,6 +23,7 @@ public class DaikonTestTrace {
     }
 
     @Test
+    @Ignore("Excluded from Chicory trace: a 2048x2048 grid is too large for dynamic instrumentation")
     public void testBoardSizeCanReachWinningValue() {
         Board board = new Board(Board.WINNING_VALUE);
 
