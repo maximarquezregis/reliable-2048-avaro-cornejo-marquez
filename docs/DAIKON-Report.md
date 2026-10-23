@@ -48,3 +48,31 @@ this.value >= ar.edu.unrc.game2048.Cell.EMPTY.value
 | `this.value >= 0` | Yes | It's useful, but it's weak | While we considered this case, we also took other cases into account to strengthen the invariant | No | Correct and useful (but weak) 
 | `this.value >= ar.edu.unrc.game2048.Cell.EMPTY.value` | Yes, it's similar to the previous one | It's not useful, since it's redundant | Yes | No | Correct and useful (but weak)
  
+
+ ### Summary of the New Trace
+
+Test cases were added to `DaikonTestTrace` to expand the range of observed values:
+
+- A board of size `6` was created—a value outside the set `{1, 4, 5}`.
+- A board of size `10` was created—a value greater than `DEFAULT_SIZE + 1`.
+- A board of size `2048` was created to demonstrate that `WINNING_VALUE > size` is not a valid invariant.
+- A score of `2048` was reached by combining two `1024` cells.
+- A score of `4` was reached on a board of size `5`, demonstrating that `score % size == 0` is false.
+
+All five new tests pass (`5 tests, 0 failures, 0 errors`). Consequently, the five spurious invariants are refuted by valid executions:
+
+| Spurious Invariant | Refuting Case | Result |
+|---|---|---|
+| `this.size one of {1, 4, 5}` | `new Board(6)` | Refuted |
+| `DEFAULT_SIZE >= size(this.grid[])-1` | `new Board(10)` | Refuted |
+| `WINNING_VALUE > this.size` | `new Board(2048)` | Refuted |
+| `WINNING_VALUE != this.score` | score `2048` after combining `1024 + 1024` | Refuted |
+| `this.score % this.size == 0` | score `4` on a board of size `5` | Refuted |
+
+The initial attempt included `new Board(2048)`, which allocated a 2048x2048 matrix and produced an excessively large trace. That test is kept in `DaikonTestTrace`, but marked with `@Ignore` for the dynamic-instrumentation run. The remaining boundary tests still cover board sizes `6` and `10`, score `2048`, and score `4` on a board of size `5`.
+
+The final run generated both `JUnitCore.dtrace.gz` and `MainCLI.dtrace.gz`, and fed both traces to Daikon. The long CLI trace was generated through `fuzzer.py` with 1000 moves. Daikon completed successfully (`Exiting Daikon`) and the new raw output was saved as `daikon-output-expanded.txt`, without overwriting the original `daikon-output.txt`. The two output files can be compared manually.
+
+The broader trace removed some overly specific invariants at individual program points. `WINNING_VALUE != this.score` disappeared from the new global output, but `WINNING_VALUE > this.size` remained. The size and score invariants also remained at some method-specific program points, including `this.size one of {4, 5}`, `DEFAULT_SIZE >= size(this.grid[])-1`, and `this.score % this.size == 0`. This is expected because the fuzzer only creates the default 4x4 board, and Daikon infers invariants separately for each program point.
+
+The broader trace also introduced a new spurious candidate in the global `Board:::OBJECT` output: `Board.DEFAULT_SIZE <= this.size`. It is an artefact of the observed sizes, because valid boards of sizes `1`, `2`, and `3` are allowed by the constructor. Thus, broadening the trace improved the evidence and removed one incorrect invariant, but it did not eliminate every spurious invariant and introduced another one caused by incomplete boundary coverage. The remaining candidates require executions through the same program points with smaller board sizes and non-default score values.
