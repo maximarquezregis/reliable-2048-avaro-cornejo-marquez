@@ -181,3 +181,15 @@ The final run generated both `JUnitCore.dtrace.gz` and `MainCLI.dtrace.gz`, and 
 The broader trace removed some overly specific invariants at individual program points. `WINNING_VALUE != this.score` disappeared from the new global output, but `WINNING_VALUE > this.size` remained. The size and score invariants also remained at some method-specific program points, including `this.size one of {4, 5}`, `DEFAULT_SIZE >= size(this.grid[])-1`, and `this.score % this.size == 0`. This is expected because the fuzzer only creates the default 4x4 board, and Daikon infers invariants separately for each program point.
 
 The broader trace also introduced a new spurious candidate in the global `Board:::OBJECT` output: `Board.DEFAULT_SIZE <= this.size`. It is an artefact of the observed sizes, because valid boards of sizes `1`, `2`, and `3` are allowed by the constructor. Thus, broadening the trace improved the evidence and removed one incorrect invariant, but it did not eliminate every spurious invariant and introduced another one caused by incomplete boundary coverage. The remaining candidates require executions through the same program points with smaller board sizes and non-default score values.
+
+## Comparison between Daikon and repOK()
+
+The Board invariant from `repOK()` that Daikon also inferred is `this.grid[] elements != null`. 
+And the Cell invariant from `repOK()` that Daikon also inferred is `this.value >= 0`.
+
+The Cell invariant that we have in `repOK()` but Daikon didn't infer is `isPowerOf2(this.value)`. That is because its template library does not generally express custom predicates or bitwise properties such as `(value & (value - 1)) == 0`. It can infer simpler properties like `this.value >= 0`, but not that a value belongs to the set of powers of two.
+And the Board `repOK()` doesn't have any invariant that Daikon didn't infer.
+
+Daikon inferred many useful invariants that we didn't include in our Board `repOK()`, those are informed in the [Generated invariants](#generated-invariants) section.
+
+We updated Board `repOk()` to check that the size, grid, rows, cells, and score are valid, while still checking every cell with `Cell.repOk()`. This makes the  representation invariant more complete and returns `false` for invalid boards. Daikon helped us identify and recognize invariants that we hadn't taken into account when implementing Board `repOk()`.
