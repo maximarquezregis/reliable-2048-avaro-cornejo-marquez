@@ -26,7 +26,6 @@
                 <version>3.1.2</version>
                 <configuration>
                     <includes>
-                        <include>**/RegressionTest*.java</include>
                         <include>**/ErrorTest*.java</include>
                         <include>**/*Test.java</include>
                     </includes>

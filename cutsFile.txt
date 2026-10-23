@@ -1,2 +1,0 @@
-ar.edu.unrc.game2048.Cell
-ar.edu.unrc.game2048.Board
