@@ -496,9 +496,16 @@ public class Board {
      */
     @CheckRep
     public boolean repOk() {
-        for (int i = 0; i < this.getSize(); i++) {
-            for (int j = 0; j < this.getSize(); j++) {
-                if (!this.getCell(i, j).repOk()) {
+        if (size <= 0 || grid == null || grid.length != size || score < 0) {
+            return false;
+        }
+
+        for (Cell[] row : grid) {
+            if (row == null || row.length != size) {
+                return false;
+            }
+            for (Cell cell : row) {
+                if (cell == null || !cell.repOk()) {
                     return false;
                 }
             }
