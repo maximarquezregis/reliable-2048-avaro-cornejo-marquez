@@ -192,4 +192,6 @@ And the Board `repOK()` doesn't have any invariant that Daikon didn't infer.
 
 Daikon inferred many useful invariants that we didn't include in our Board `repOK()`, those are informed in the [Generated invariants](#generated-invariants) section.
 
-We updated Board `repOk()` to check that the size, grid, rows, cells, and score are valid, while still checking every cell with `Cell.repOk()`. This makes the  representation invariant more complete and returns `false` for invalid boards. Daikon helped us identify and recognize invariants that we hadn't taken into account when implementing Board `repOk()`.
+We updated Board `repOk()` to check that the size, grid, rows, cells, and score are valid, while still checking every cell with `Cell.repOk()`. This makes the representation invariant more complete and returns `false` for invalid boards. Daikon helped us identify and recognize invariants that we hadn't taken into account when implementing Board `repOk()`.
+
+Manual testing was the most useful approach for us because it was the first stage of the software evaluation process and allowed us to assess most of the program’s functionality. It helped us verify the expected behavior of the main features and identify usability issues early in the evaluation process. If we had to select an automated testing technique, we would probably choose EvoSuite because it helped us identify edge cases that we had not previously considered.
