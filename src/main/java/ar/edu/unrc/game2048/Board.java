@@ -117,6 +117,61 @@ public class Board {
             }
         }
     }
+    /**
+     * Creates a new board from a string representation.
+     *
+     * @param boardString the string representation of the board
+     * @param size the size of the board
+     */
+    public Board(String boardString, int size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("Board size must be positive: " + size);
+        }
+        ArrayList<Integer> boardList = clearInput(boardString); // Parse the board string into a list of integers
+        if (boardList.size() != size * size) {
+            throw new IllegalStateException("Board size " + size + " must match the actual size of the board " + boardString.length());
+        }
+        // Initialize the board
+        this.size = size;
+        this.score = 0;
+        this.grid = new Cell[size][size];
+
+        // Position in the boardList to read the next number from
+        int numberBoard = 0;
+
+        // Fill the grid with Cells based on the parsed integers
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                Cell cell = new Cell(boardList.get(numberBoard));
+                grid[row][col] = cell;
+                numberBoard++;
+            }
+        }
+    }
+    /**
+     * Clears the input string and converts it to a list of integers.
+     *
+     * @param boardString the string representation of the board
+     * @return a list of integers representing the board
+     */
+    private ArrayList<Integer> clearInput(String boardString) {
+        ArrayList<Integer> board = new ArrayList<>();
+
+        // Remove brackets [ ... ]
+        String boardStringWithoutBrack = boardString.replace("[", "").replace("]", "");
+
+        // Split the string by commas and convert to integers
+        String[] numbersBoard = boardStringWithoutBrack.split(",");
+
+        // Convert each number to an integer and add to the list
+        for (int i = 0; i < numbersBoard.length; i++) {
+            int number = Integer.parseInt(numbersBoard[i].trim()); 
+            board.add(number);
+        }
+
+        // Return the list of integers representing the board
+        return board;
+    }
 
     /**
      * Initializes the board with all EMPTY cells.
