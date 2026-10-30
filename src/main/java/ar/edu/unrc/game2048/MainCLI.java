@@ -12,8 +12,12 @@ public class MainCLI {
     private final Board board;
     private final Scanner scanner;
     
-    public MainCLI() {
-        this.board = new Board();
+    public MainCLI(String boardString, int size) {
+        if (boardString != null) {
+            this.board = new Board(boardString, size);
+        } else {
+            this.board = new Board();
+        }
         this.scanner = new Scanner(System.in);
     }
     
@@ -82,7 +86,10 @@ public class MainCLI {
     }
     
     public static void main(String[] args) {
-        MainCLI game = new MainCLI();
+        String board = args.length > 0 ? args[0] : null; // Allow passing a board string as the first argument
+        String sizeArg = args.length > 1 ? args[1] : null; // Allow passing a size as the second argument
+        int size = sizeArg != null ? Integer.parseInt(sizeArg) : Board.DEFAULT_SIZE; // Parse size to int or use default
+        MainCLI game = new MainCLI(board, size);
         game.play();
     }
 }
