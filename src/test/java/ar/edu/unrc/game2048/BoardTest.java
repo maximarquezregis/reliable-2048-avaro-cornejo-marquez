@@ -922,4 +922,82 @@ class BoardTest {
         });    
     }
 
+    /**
+     * Tests the constructor of the `Board` class with a string representation.
+     *
+     * This test verifies that the constructor correctly creates a board from a string representation.
+     */
+    @Test 
+    public void testConstructorBoardWithStringRepresentation() {
+        String boardString = "[0,0,0,0,4,2,0,0,0,0,0,0,2,2,2,2]";
+        int size = DEFAULT_SIZE;
+        Board board = new Board(boardString, size);
+        assertEquals(board.toString(), 
+        "Score: 0\n" +
+                "+-----+-----+-----+-----+\n" +
+                "|     |     |     |     |\n" +
+                "+-----+-----+-----+-----+\n" +
+                "|    4|    2|     |     |\n" +
+                "+-----+-----+-----+-----+\n" +
+                "|     |     |     |     |\n" +
+                "+-----+-----+-----+-----+\n" +
+                "|    2|    2|    2|    2|\n" +
+                "+-----+-----+-----+-----+\n");
+    }
+
+    /**
+     * Tests the constructor of the `Board` class with a string representation of all zeros.
+     *
+     * This test verifies that the constructor correctly creates a board from a string representation of all zeros.
+     */
+    @Test 
+    public void testConstructorBoardWithStringRepresentationZero() {
+        String boardString = "[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]";
+        int size = DEFAULT_SIZE;
+        Board board = new Board(boardString, size);
+        assertEquals(board.toString(), 
+        "Score: 0\n" +
+                "+-----+-----+-----+-----+\n" +
+                "|     |     |     |     |\n" +
+                "+-----+-----+-----+-----+\n" +
+                "|     |     |     |     |\n" +
+                "+-----+-----+-----+-----+\n" +
+                "|     |     |     |     |\n" +
+                "+-----+-----+-----+-----+\n" +
+                "|     |     |     |     |\n" +
+                "+-----+-----+-----+-----+\n");
+    }
+
+    /**
+     * Tests the constructor of the `Board` class with an invalid size.
+     *
+     * This test verifies that the constructor throws an `IllegalArgumentException` when a negative size is provided.
+     *
+     * @throws IllegalArgumentException if the size is negative
+     */
+    @Test 
+    public void testConstructorBoardWithStringRepresentationInvalidSize() {
+        String boardString = "[2,0,0,2,0,0,4,0,0,2,0,4,0,0,0,0]";
+        int size = -1;
+        assertThrows(IllegalArgumentException.class, () -> {
+            Board board = new Board(boardString, size);
+        }); 
+    }
+
+    /**
+     * Tests the constructor of the `Board` class with a string representation that doesn't match the size.
+     *
+     * This test verifies that the constructor throws an `IllegalStateException` when the string representation doesn't match the size.
+     *
+     * @throws IllegalStateException if the string representation doesn't match the size
+     */
+    @Test 
+    public void testConstructorBoardWithStringRepresentationNotMatch() {
+        String boardString = "[2,0,0,2,0,0,4,0,0,2,0,4,0,0,0,0]";
+        int size = 14;
+        assertThrows(IllegalStateException.class, () -> {
+            Board board = new Board(boardString, size);
+        }); 
+    }
+
 }
