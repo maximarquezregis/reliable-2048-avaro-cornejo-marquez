@@ -129,7 +129,7 @@ public class Board {
         }
         ArrayList<Integer> boardList = clearInput(boardString); // Parse the board string into a list of integers
         if (boardList.size() != size * size) {
-            throw new IllegalStateException("Board size " + size + " must match the actual size of the board " + boardString.length());
+            throw new IllegalStateException("Board size " + size + " must match the actual size of the board " + boardList.size());
         }
         // Initialize the board
         this.size = size;
