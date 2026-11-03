@@ -144,8 +144,6 @@ class GrammarFuzzer(Fuzzer):
     """
     Generates boards from a grammar
 
-    Note: an expected rejection, not a bug).
-
     Parameters
     ----------
     grammar : dict
