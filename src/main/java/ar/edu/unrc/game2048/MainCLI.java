@@ -18,6 +18,7 @@ public class MainCLI {
         } else {
             this.board = new Board();
         }
+        assert board.repOk();
         this.scanner = new Scanner(System.in);
     }
     

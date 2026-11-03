@@ -157,8 +157,17 @@ public class Board {
     private ArrayList<Integer> clearInput(String boardString) {
         ArrayList<Integer> board = new ArrayList<>();
 
+        if (boardString.charAt(0) != '[' || boardString.charAt(boardString.length() - 1) != ']') {
+            throw new IllegalStateException("Board string must start with '[' and end with ']': " + boardString);
+        }
+
         // Remove brackets [ ... ]
         String boardStringWithoutBrack = boardString.replace("[", "").replace("]", "");
+
+        // Check if the string ends with a comma
+        if (boardStringWithoutBrack != null && boardStringWithoutBrack.charAt(boardStringWithoutBrack.length() - 1) == ',') {
+            throw new IllegalStateException("Board string cannot end with a comma: " + boardString);
+        }
 
         // Split the string by commas and convert to integers
         String[] numbersBoard = boardStringWithoutBrack.split(",");

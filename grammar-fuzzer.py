@@ -88,7 +88,7 @@ class BoardCLIRunner(CLIRunner):
 # ---------------------------------------------------------------------------
 
 def simple_grammar_fuzzer(grammar: dict, start_symbol: str = START_SYMBOL,
-                           max_nonterminals: int = 100, max_expansion_trials: int = 1000) -> str:
+                           max_nonterminals: int = 100, max_expansion_trials: int = 100) -> str:
     """
     Produce a string from *grammar*, starting at *start_symbol*.
 
@@ -144,7 +144,7 @@ class GrammarFuzzer(Fuzzer):
     """
     Generates boards from a grammar
 
-    MainCLI (an expected rejection, not a bug).
+    Note: an expected rejection, not a bug).
 
     Parameters
     ----------
