@@ -164,8 +164,13 @@ public class Board {
         // Remove brackets [ ... ]
         String boardStringWithoutBrack = boardString.replace("[", "").replace("]", "");
 
+        // Check if board has at least 1 number
+        if (boardStringWithoutBrack.isEmpty()) {
+            throw new IllegalArgumentException("Board must have at least 1 number");
+        }
+
         // Check if the string ends with a comma
-        if (boardStringWithoutBrack != null && boardStringWithoutBrack.charAt(boardStringWithoutBrack.length() - 1) == ',') {
+        if (boardStringWithoutBrack.charAt(boardStringWithoutBrack.length() - 1) == ',') {
             throw new IllegalStateException("Board string cannot end with a comma: " + boardString);
         }
 
