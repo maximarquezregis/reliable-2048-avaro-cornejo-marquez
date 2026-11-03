@@ -1000,4 +1000,61 @@ class BoardTest {
         }); 
     }
 
+    /**
+    * Tests the constructor of the `Board` class with a string representation that has an invalid comma.
+    * 
+    * This test verifies that the constructor throws an `IllegalStateException` when the string representation has an invalid comma.
+     */
+    @Test
+    public void testConstructorBoardWithStringRepresentationInvalidComma() {
+        String boardString = "[2,0,0,2,0,0,4,0,0,2,0,4,0,0,0,0,]";
+        int size = 4;
+        assertThrows(IllegalStateException.class, () -> {
+            Board board = new Board(boardString, size);
+        });  
+    }
+
+    /**
+    * Tests the constructor of the `Board` class with a string representation that has an invalid double comma.
+    * 
+    * This test verifies that the constructor throws an `NumberFormatException` when the string representation has an invalid double comma.
+     */
+    @Test
+    public void testConstructorBoardWithStringRepresentationInvalidDoubleComma() {
+        String boardString = "[2,0,0,2,0,0,4,0,0,2,0,4,0,0,0,,0]";
+        int size = 4;
+        assertThrows(NumberFormatException.class, () -> {
+            Board board = new Board(boardString, size);
+        });  
+    }
+
+    /**
+     * Tests the constructor of the `Board` class with a string representation that is missing the closing bracket.
+     * 
+     * This test verifies that the constructor throws an `IllegalStateException` when the string representation is missing the closing bracket.
+     */
+    @Test 
+    public void testConstructorBoardWithStringRepresentationWithoutEndBracket() {
+        String boardString = "[2,0,0,2,0,0,4,0,0,2,0,4,0,0,0";
+        int size = 4;
+        assertThrows(IllegalStateException.class, () -> {
+            Board board = new Board(boardString, size);
+        });  
+    }
+
+    /**
+     * Tests the constructor of the `Board` class with a string representation that is missing the closing bracket.
+     * 
+     * This test verifies that the constructor throws an `IllegalStateException` when the string representation is missing the closing bracket.
+     */
+    @Test 
+    public void testConstructorBoardWithStringRepresentationWithoutBeginBracket() {
+        String boardString = "2,0,0,2,0,0,4,0,0,2,0,4,0,0,0]";
+        int size = 4;
+        assertThrows(IllegalStateException.class, () -> {
+            Board board = new Board(boardString, size);
+        });  
+    }
+
+    
 }
