@@ -31,3 +31,6 @@ least one cell before attempting to parse it. As a result, the parser attempted 
 causing a `StringIndexOutOfBoundsException`.
 
 The fix is to validate the board string before parsing it and reject `[]` with a controlled validation error.
+
+After fixing the bug, we ran additional fuzzing and mutation tests with a larger number of test cases. 
+The implementation correctly rejected the invalid boards generated during these tests, and no additional failures were observed.
