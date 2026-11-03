@@ -259,12 +259,7 @@ def is_expected_mutation_rejection(result) -> bool:
                 or "must match the actual size of the board" in stderr
                 or "cannot end with a comma" in stderr
                 or "Board number must be less than or equal to 4" in stderr
-            )
-        )
-        or (
-            "IllegalArgumentException" in stderr
-            and (
-                "Cell value must be a power of two" in stderr
+                or "Cell value must be a power of two" in stderr
                 or "Board must have at least 1 number" in stderr
             )
         )
