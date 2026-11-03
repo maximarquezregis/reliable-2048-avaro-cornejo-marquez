@@ -190,6 +190,131 @@ def is_expected_rejection(result) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Mutations
+# ---------------------------------------------------------------------------
+
+class BoardMutator:
+    """
+    Mutates the fuzzed-generated board by adding, modifying or deleting chars.
+    """
+    def mutate(self, board: str) -> str:
+        if not board:
+            return board
+        mutation = random.choice([
+            self.replace_char,
+            self.delete_char,
+            self.add_char,
+        ])
+        return mutation(board)
+
+
+    def replace_char(self, board: str) -> str:
+        if not board:
+            return board
+        position = random.randrange(len(board))
+        char_for_replace = chr(random.randint(32, 126))  # ascii range that only contains chars, numbers and symbols
+        return board[:position] + char_for_replace + board[position + 1:]
+
+
+    def delete_char(self, board: str) -> str:
+        if not board:
+            return board
+        position = random.randrange(len(board))
+        return board[:position] + board[position + 1:]
+
+
+    def add_char(self, board: str) -> str:
+        if not board:
+            return board
+        position = random.randrange(len(board))
+        char_to_insert = chr(random.randint(32, 126))
+        return board[:position] + char_to_insert + board[position:]
+
+# ---------------------------------------------------------------------------
+# Expected mutations rejection check
+# ---------------------------------------------------------------------------
+
+def is_expected_mutation_rejection(result) -> bool:
+    """
+    Return True when MainCLI rejects a mutated board for an expected
+    validation error.
+
+    Mutations may produce malformed board syntax or invalid cell values.
+    These inputs are correctly rejected by Board through exceptions such as
+    NumberFormatException or IllegalStateException, so they should not be
+    counted as unexpected failures.
+    """
+
+    if result is None or result.returncode == 0:
+        return False
+
+    stderr = result.stderr
+
+    return (
+        "NumberFormatException" in stderr
+        or (
+            "IllegalStateException" in stderr
+                 and (
+                    "must start with '[' and end with ']'" in stderr
+                    or "must match the actual size of the board" in stderr
+                    or "cannot end with a comma" in stderr
+                 )
+        )
+        or (
+            "IllegalArgumentException" in stderr
+            and "Cell value must be a power of two" in stderr
+        )
+    )
+
+# ---------------------------------------------------------------------------
+# Mutation runner
+# ---------------------------------------------------------------------------
+
+def run_mutation_trials(trials: int = 100):
+    runner = BoardCLIRunner()
+    fuzzer = GrammarFuzzer()
+    mutator = BoardMutator()
+
+    expected_rejections = 0
+    unexpected_failures = 0
+    accepted = 0
+    unresolved = 0
+
+    for i in range(trials):
+        original_board, size = fuzzer.board_with_size()
+        mutated_board = mutator.mutate(original_board)
+
+        result, outcome = runner.run("q\n", mutated_board, size)
+
+        if outcome == UNRESOLVED:
+            unresolved += 1
+            status = "UNRESOLVED"
+        elif outcome == FAIL and is_expected_mutation_rejection(result):
+            expected_rejections += 1
+            status = "EXPECTED REJECTION"
+        elif outcome == FAIL:
+            unexpected_failures += 1
+            status = "UNEXPECTED FAILURE"
+        else:
+            accepted += 1
+            status = "ACCEPTED"
+
+        print(f"\n--- Trial {i + 1} | {status} ---")
+        print(f"Original: {original_board}")
+        print(f"Mutated : {mutated_board}")
+        print(f"Size    : {size}")
+
+        if result is not None and result.stderr:
+            print(f"Stderr  : {result.stderr.strip()}")
+
+    print("\nSummary:")
+    print(f"Expected rejections: {expected_rejections}/{trials}")
+    print(f"Unexpected failures: {unexpected_failures}/{trials}")
+    print(f"Accepted: {accepted}/{trials}")
+    print(f"Unresolved: {unresolved}/{trials}")
+
+
+# ---------------------------------------------------------------------------
 # Main: run the grammar fuzzer and report results
 # ---------------------------------------------------------------------------
 
@@ -197,7 +322,7 @@ def main():
     runner = BoardCLIRunner()
     fuzzer = GrammarFuzzer()
 
-    trials = 20
+    trials = 50
     outcomes = {PASS: 0, FAIL: 0, UNRESOLVED: 0}
     expected_rejections = 0  # counts FAILs reclassified as PASS (size mismatch)
 
@@ -235,6 +360,9 @@ def main():
     for outcome, count in outcomes.items():
         print(f"  {outcome:<12}: {count}/{trials}")
     print(f"  (expected rejections counted as PASS: {expected_rejections})")
+
+    print("\nRunning mutation trials...\n")
+    run_mutation_trials(50)
 
 
 if __name__ == "__main__":
