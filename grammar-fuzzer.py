@@ -254,15 +254,18 @@ def is_expected_mutation_rejection(result) -> bool:
         "NumberFormatException" in stderr
         or (
             "IllegalStateException" in stderr
-                 and (
-                    "must start with '[' and end with ']'" in stderr
-                    or "must match the actual size of the board" in stderr
-                    or "cannot end with a comma" in stderr
-                 )
+            and (
+                "must start with '[' and end with ']'" in stderr
+                or "must match the actual size of the board" in stderr
+                or "cannot end with a comma" in stderr
+            )
         )
         or (
             "IllegalArgumentException" in stderr
-            and "Cell value must be a power of two" in stderr
+            and (
+                "Cell value must be a power of two" in stderr
+                or "Board must have at least 1 number" in stderr
+            )
         )
     )
 
