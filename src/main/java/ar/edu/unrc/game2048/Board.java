@@ -129,7 +129,7 @@ public class Board {
         }
         ArrayList<Integer> boardList = clearInput(boardString); // Parse the board string into a list of integers
         if (boardList.size() != size * size) {
-            throw new IllegalStateException("Board size " + size + " must match the actual size of the board " + boardList.size());
+            throw new IllegalArgumentException("Board size " + size + " must match the actual size of the board " + boardList.size());
         }
         // Initialize the board
         this.size = size;
@@ -158,7 +158,7 @@ public class Board {
         ArrayList<Integer> board = new ArrayList<>();
 
         if (boardString.charAt(0) != '[' || boardString.charAt(boardString.length() - 1) != ']') {
-            throw new IllegalStateException("Board string must start with '[' and end with ']': " + boardString);
+            throw new IllegalArgumentException("Board string must start with '[' and end with ']': " + boardString);
         }
 
         // Remove brackets [ ... ]
@@ -171,7 +171,7 @@ public class Board {
 
         // Check if the string ends with a comma
         if (boardStringWithoutBrack.charAt(boardStringWithoutBrack.length() - 1) == ',') {
-            throw new IllegalStateException("Board string cannot end with a comma: " + boardString);
+            throw new IllegalArgumentException("Board string cannot end with a comma: " + boardString);
         }
 
         // Split the string by commas and convert to integers
@@ -180,6 +180,9 @@ public class Board {
         // Convert each number to an integer and add to the list
         for (int i = 0; i < numbersBoard.length; i++) {
             int number = Integer.parseInt(numbersBoard[i].trim()); 
+            if (number > 4) {
+                throw new IllegalArgumentException("Board number must be less than or equal to 4: " + number);
+            }
             board.add(number);
         }
 
