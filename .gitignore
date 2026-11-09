@@ -29,3 +29,6 @@ mise.toml
 
 # IntelliJ
 .idea/
+# OASIs API key
+oasis/.env
+__pycache__/
