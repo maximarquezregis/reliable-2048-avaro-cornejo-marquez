@@ -1,0 +1,6 @@
+{
+  "method": "maxTile",
+  "params": [{"name": "board", "type": "int[]"}],
+  "return_type": "int",
+  "assertion": "result >= 2 && result <= 2048"
+}
