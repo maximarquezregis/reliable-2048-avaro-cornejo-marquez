@@ -128,7 +128,7 @@ def board_size(board: str) -> int:
     takes the integer square root of that count. Never raises: when the
     cell count is not a perfect square, the returned size simply does not
     match it (e.g. 5 cells -> 2), and that mismatch is deliberately passed
-    through to MainCLI, which rejects it with an IllegalStateException --
+    through to MainCLI, which rejects it with an IllegalArgumentException --
     an expected rejection (see is_expected_rejection), not a bug.
     """
     cells = board.strip()[1:-1].split(",")
@@ -178,13 +178,13 @@ def is_expected_rejection(result) -> bool:
 
     This is the correct validation behavior of Board(String, int) for
     invalid input, not a bug: Board is expected to raise an
-    IllegalStateException in this case, so we should not count it as FAIL.
+    IllegalArgumentException in this case, so we should not count it as FAIL.
     """
     if result is None:
         return False
     return (
         result.returncode != 0
-        and "IllegalStateException" in result.stderr
+        and "IllegalArgumentException" in result.stderr
         and "must match the actual size of the board" in result.stderr
     )
 
@@ -241,7 +241,7 @@ def is_expected_mutation_rejection(result) -> bool:
 
     Mutations may produce malformed board syntax or invalid cell values.
     These inputs are correctly rejected by Board through exceptions such as
-    NumberFormatException or IllegalStateException, so they should not be
+    NumberFormatException or IllegalArgumentException, so they should not be
     counted as unexpected failures.
     """
 
@@ -253,17 +253,13 @@ def is_expected_mutation_rejection(result) -> bool:
     return (
         "NumberFormatException" in stderr
         or (
-            "IllegalStateException" in stderr
+            "IllegalArgumentException" in stderr
             and (
                 "must start with '[' and end with ']'" in stderr
                 or "must match the actual size of the board" in stderr
                 or "cannot end with a comma" in stderr
-            )
-        )
-        or (
-            "IllegalArgumentException" in stderr
-            and (
-                "Cell value must be a power of two" in stderr
+                or "Board number must be less than or equal to 4" in stderr
+                or "Cell value must be a power of two" in stderr
                 or "Board must have at least 1 number" in stderr
             )
         )
