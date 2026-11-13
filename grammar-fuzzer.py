@@ -22,7 +22,7 @@ BOARD_GRAMMAR = {
     "<board>": ["[<cells>]"],
     "<cells>": ["<cell>", "<cell>,<cell>,<cells>", "<cell>,<cell>,<cell>,<cell>,<cells>", "<cell>,<cells>"], # more possible expansions to increase variety
     "<cell>": ["<digit>"],
-    "<digit>": ["0", "2", "4"]
+    "<digit>": ["0", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024", "2048"]
 }
 
 # ---------------------------------------------------------------------------
@@ -258,7 +258,6 @@ def is_expected_mutation_rejection(result) -> bool:
                 "must start with '[' and end with ']'" in stderr
                 or "must match the actual size of the board" in stderr
                 or "cannot end with a comma" in stderr
-                or "Board number must be less than or equal to 4" in stderr
                 or "Cell value must be a power of two" in stderr
                 or "Board must have at least 1 number" in stderr
             )
@@ -321,7 +320,7 @@ def main():
     runner = BoardCLIRunner()
     fuzzer = GrammarFuzzer()
 
-    trials = 50
+    trials = 500
     outcomes = {PASS: 0, FAIL: 0, UNRESOLVED: 0}
     expected_rejections = 0  # counts FAILs reclassified as PASS (size mismatch)
 
@@ -354,14 +353,14 @@ def main():
 
         print()
 
-    print("=" * 50)
+    print("=" * 500)
     print("Summary:")
     for outcome, count in outcomes.items():
         print(f"  {outcome:<12}: {count}/{trials}")
     print(f"  (expected rejections counted as PASS: {expected_rejections})")
 
     print("\nRunning mutation trials...\n")
-    run_mutation_trials(50)
+    run_mutation_trials(500)
 
 
 if __name__ == "__main__":
