@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static ar.edu.unrc.game2048.Board.DEFAULT_SIZE;
 import ar.edu.unrc.game2048.Board.Position;
@@ -30,21 +32,45 @@ class BoardTest {
         }
     }
 
-    @Test
-    void moveLeftChangeTheBoardTest() {
-        clearBoard(board);
-        board.setCell(0, 3, new Cell(2));
-        board.setCell(1, 2, new Cell(2));
-        assertTrue(board.moveLeft());
+    /**
+     * Board sizes used by parameterized tests
+     */
+    static int[] sizes() {
+        return new int[]{4, 5, 6, 8, 10, 13, 15, 20, 25, 30, 40, 50, 100, 200, 500, 1000};
     }
 
-    @Test
-    void getEmptyPositionsReturnsCorrectListTest() {
-        assertTrue(board.getEmptyPositions().size() > 0);
+    /**
+     * Fill a board with 2s and 4s
+     */
+    private void fillCheckerboard(Board b) {
+        int size = b.getSize();
+        for (int r = 0; r < size; r++) {
+            for (int c = 0; c < size; c++) {
+                int value = ((r + c) % 2 == 0) ? 2 : 4;
+                b.setCell(r, c, new Cell(value));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveLeftChangeTheBoardTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
+        b.setCell(0, size - 1, new Cell(2));
+        b.setCell(1, size - 2, new Cell(2));
+        assertTrue(b.moveLeft());
+    }
+
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void getEmptyPositionsReturnsCorrectListTest(int size) {
+        Board b = new Board(size);
+        assertTrue(b.getEmptyPositions().size() > 0);
 
         // Clear the board and see if it is empty
-        clearBoard(board);
-        assertEquals(16, board.getEmptyPositions().size());
+        clearBoard(b);
+        assertEquals(size * size, b.getEmptyPositions().size());
     }
 
     @Test
@@ -68,17 +94,19 @@ class BoardTest {
      * This test ensures that the `setCell` method throws an `IndexOutOfBoundsException`
      * when attempting to set a cell at an invalid position.
      */
-    @Test
-    void setCellWithInvalidPosition() {
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void setCellWithInvalidPosition(int size) {
+        Board b = new Board(size);
         IndexOutOfBoundsException exception = assertThrows(
                 IndexOutOfBoundsException.class,
-                () -> board.setCell(-1, -1, new Cell(2))
+                () -> b.setCell(-1, -1, new Cell(2))
         );
 
         assertEquals(
                 String.format(
                         "Position (%d, %d) is out of bounds for board size %d",
-                        -1, -1, board.getSize()
+                        -1, -1, b.getSize()
                 ),
                 exception.getMessage()
         );
@@ -89,10 +117,12 @@ class BoardTest {
         assertTrue(board.getScore() >= 0);
     }
 
-    @Test
-    void equalsTest() {
-        Board anotherBoard = new Board(board);
-        assertTrue(board.equals(anotherBoard));
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void equalsTest(int size) {
+        Board b = new Board(size);
+        Board anotherBoard = new Board(b);
+        assertTrue(b.equals(anotherBoard));
     }
 
     @Test
@@ -138,33 +168,37 @@ class BoardTest {
         assertFalse(board.isWinningBoard());
     }
 
-    @Test
-    public void testGetSizeEqual() {
-        assertEquals(board.getSize(), 4);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testGetSizeEqual(int size) {
+        Board b = new Board(size);
+        assertEquals(b.getSize(), size);
     }
 
-    @Test
-    public void testGetSizeNotEqual() {
-        assertNotEquals(board.getSize(), 5);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testGetSizeNotEqual(int size) {
+        Board b = new Board(size);
+        assertNotEquals(b.getSize(), size + 1);
     }
 
     // Board constructor tests
 
-    @Test 
+    @Test
     public void testBoardConstructorSizeNegative() {
         assertThrows(IllegalArgumentException.class, () -> {
             Board b = new Board(-1);
         });
     }
 
-    @Test 
+    @Test
     public void testBoardConstructorSizeZero() {
         assertThrows(IllegalArgumentException.class, () -> {
             Board b = new Board(0);
         });
     }
 
-    @Test 
+    @Test
     public void testGetCellValidPosition() {
         clearBoard(board);
         Cell c = new Cell(8);
@@ -173,46 +207,91 @@ class BoardTest {
         assertFalse(board.getCell(0, 1).getValue() == 8);
     }
 
-    @Test 
+    @Test
     public void testGetCellNotValidRowNegative() {
-        // If the row is out of bounds, the `validatePosition` method, 
+        // If the row is out of bounds, the `validatePosition` method,
         // used internally by the `getCell` method, throws an exception
         assertThrows(IndexOutOfBoundsException.class, () -> {
             board.getCell(-1, 0);
         });
     }
 
-    @Test 
-    public void testGetCellNotValidRowSize() {
-        // If the row is out of bounds, the `validatePosition` method, 
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testGetCellNotValidRowSize(int size) {
+        // If the row is out of bounds, the `validatePosition` method,
         // used internally by the `getCell` method, throws an exception
+        Board b = new Board(size);
         IndexOutOfBoundsException exception = assertThrows(
             IndexOutOfBoundsException.class,
-            () -> board.getCell(board.getSize(), 0)
+            () -> b.getCell(b.getSize(), 0)
         );
 
         assertEquals(
             String.format(
                 "Position (%d, %d) is out of bounds for board size %d",
-                board.getSize(), 0, board.getSize()
+                b.getSize(), 0, b.getSize()
             ),
             exception.getMessage()
         );
     }
 
-    @Test 
-    public void testGetCellNotValidRowGreaterSize() {
-        // If the row is out of bounds, the `validatePosition` method, 
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testGetCellNotValidRowGreaterSize(int size) {
+        // If the row is out of bounds, the `validatePosition` method,
         // used internally by the `getCell` method, throws an exception
+        Board b = new Board(size);
         IndexOutOfBoundsException exception = assertThrows(
             IndexOutOfBoundsException.class,
-            () -> board.getCell(board.getSize()+1, 0)
+            () -> b.getCell(b.getSize()+1, 0)
         );
 
         assertEquals(
             String.format(
                 "Position (%d, %d) is out of bounds for board size %d",
-                board.getSize()+1, 0, board.getSize()
+                b.getSize()+1, 0, b.getSize()
+            ),
+            exception.getMessage()
+        );
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testGetCellNotValidColSize(int size) {
+        // If the column is out of bounds, the `validatePosition` method,
+        // used internally by the `getCell` method, throws an exception
+        Board b = new Board(size);
+        IndexOutOfBoundsException exception = assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> b.getCell(0, b.getSize())
+        );
+
+        assertEquals(
+            String.format(
+                "Position (%d, %d) is out of bounds for board size %d",
+                0, b.getSize(), b.getSize()
+            ),
+            exception.getMessage()
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testGetCellNotValidColGreaterSize(int size) {
+        // If the column is out of bounds, the `validatePosition` method,
+        // used internally by the `getCell` method, throws an exception
+        Board b = new Board(size);
+        IndexOutOfBoundsException exception = assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> b.getCell(0, b.getSize()+1)
+        );
+
+        assertEquals(
+            String.format(
+                "Position (%d, %d) is out of bounds for board size %d",
+                0, b.getSize()+1, b.getSize()
             ),
             exception.getMessage()
         );
@@ -220,45 +299,8 @@ class BoardTest {
 
 
     @Test
-    public void testGetCellNotValidColSize() {
-        // If the column is out of bounds, the `validatePosition` method, 
-        // used internally by the `getCell` method, throws an exception
-        IndexOutOfBoundsException exception = assertThrows(
-            IndexOutOfBoundsException.class,
-            () -> board.getCell(0, board.getSize())
-        );
-
-        assertEquals(
-            String.format(
-                "Position (%d, %d) is out of bounds for board size %d",
-                0, board.getSize(), board.getSize()
-            ),
-            exception.getMessage()
-        );
-    }
-
-    @Test 
-    public void testGetCellNotValidColGreaterSize() {
-        // If the column is out of bounds, the `validatePosition` method, 
-        // used internally by the `getCell` method, throws an exception
-        IndexOutOfBoundsException exception = assertThrows(
-            IndexOutOfBoundsException.class,
-            () -> board.getCell(0, board.getSize()+1)
-        );
-
-        assertEquals(
-            String.format(
-                "Position (%d, %d) is out of bounds for board size %d",
-                0, board.getSize()+1, board.getSize()
-            ),
-            exception.getMessage()
-        );
-    }
-
-
-    @Test 
     public void testGetCellNotValidColNegative() {
-        // If the column is out of bounds, the `validatePosition` method, 
+        // If the column is out of bounds, the `validatePosition` method,
         // used internally by the `getCell` method, throws an exception
         assertThrows(IndexOutOfBoundsException.class, () -> {
             board.getCell(0, -1);
@@ -273,195 +315,225 @@ class BoardTest {
     }
 
     // MOVE UP TESTS
-    @Test
-    public void testMoveUpChangeTheBoard() {
-        clearBoard(board);
-        board.setCell(2, 0, new Cell(2));
-        board.setCell(3, 1, new Cell(4));
-        assertTrue(board.moveUp());
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveUpChangeTheBoard(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
+        b.setCell(size - 2, 0, new Cell(2));
+        b.setCell(size - 1, 1, new Cell(4));
+        assertTrue(b.moveUp());
     }
 
-    @Test
-    public void testMoveUpMovesTileFromBottomToTop() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveUpMovesTileFromBottomToTop(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
-        board.setCell(DEFAULT_SIZE-1, DEFAULT_SIZE-1, new Cell(2));
+        b.setCell(size - 1, size - 1, new Cell(2));
 
-        boolean moved = board.moveUp();
+        boolean moved = b.moveUp();
 
         assertTrue(moved);
-        assertEquals(2, board.getCell(0,DEFAULT_SIZE-1).getValue());
+        assertEquals(2, b.getCell(0, size - 1).getValue());
     }
 
-    @Test
-    public void testMoveUpMovesTileFromBottomToTopNotMoved() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveUpMovesTileFromBottomToTopNotMoved(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
-        board.setCell(0, 0, new Cell(2));
+        b.setCell(0, 0, new Cell(2));
 
-        boolean moved = board.moveUp();
+        boolean moved = b.moveUp();
 
         assertFalse(moved);
     }
 
-    @Test
-    public void testMoveUpMergesTilesAndIncrementsScore() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveUpMergesTilesAndIncrementsScore(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
         // Place two equal tiles so they should merge when moved up
-        board.setCell(2, 0, new Cell(2));
-        board.setCell(3, 0, new Cell(2));
+        b.setCell(size - 2, 0, new Cell(2));
+        b.setCell(size - 1, 0, new Cell(2));
 
-        boolean moved = board.moveUp();
+        boolean moved = b.moveUp();
 
         // After merging, top cell should be 4 and score increased by 4
         assertTrue(moved);
-        assertEquals(4, board.getCell(0, 0).getValue());
-        assertTrue(board.getScore() >= 4);
+        assertEquals(4, b.getCell(0, 0).getValue());
+        assertTrue(b.getScore() >= 4);
     }
-  
-    @Test
-    public void testMoveUpDoesNotMergeDifferentTiles() {
-        clearBoard(board);
+
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveUpDoesNotMergeDifferentTiles(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
         // Place two different tiles in the same column
-        board.setCell(2, 0, new Cell(2));
-        board.setCell(3, 0, new Cell(32));
+        b.setCell(size - 2, 0, new Cell(2));
+        b.setCell(size - 1, 0, new Cell(32));
 
-        boolean moved = board.moveUp();
+        boolean moved = b.moveUp();
 
         // The tiles should not merge, they should remain in their positions
         assertTrue(moved);
-        assertEquals(2, board.getCell(0, 0).getValue());
-        assertEquals(32, board.getCell(1, 0).getValue());
-    }
-  
-    // Move DOWN tests
-    @Test
-    void moveDownChangeTheBoardTest() {
-        clearBoard(board);
-        board.setCell(0, 0, new Cell(2));
-        board.setCell(1, 1, new Cell(4));
-        assertTrue(board.moveDown());
+        assertEquals(2, b.getCell(0, 0).getValue());
+        assertEquals(32, b.getCell(1, 0).getValue());
     }
 
-    @Test
-    void moveDownMovesTileFromTopToBottomTest() {
-        clearBoard(board);
+    // Move DOWN tests
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveDownChangeTheBoardTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
+        b.setCell(0, 0, new Cell(2));
+        b.setCell(1, 1, new Cell(4));
+        assertTrue(b.moveDown());
+    }
+
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveDownMovesTileFromTopToBottomTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
         // Place a single tile at the top of the first column
-        board.setCell(0, 0, new Cell(2));
+        b.setCell(0, 0, new Cell(2));
 
-        boolean moved = board.moveDown();
+        boolean moved = b.moveDown();
         // Expect the tile to have moved to the bottom of the column
         assertTrue(moved);
-        assertEquals(2, board.getCell(board.getSize() - 1, 0).getValue());
+        assertEquals(2, b.getCell(b.getSize() - 1, 0).getValue());
     }
 
-    @Test
-    void moveDownMergesTilesAndIncrementsScoreTest() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveDownMergesTilesAndIncrementsScoreTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
         // Place two equal tiles so they should merge when moved down
-        board.setCell(0, 0, new Cell(2));
-        board.setCell(1, 0, new Cell(2));
+        b.setCell(0, 0, new Cell(2));
+        b.setCell(1, 0, new Cell(2));
 
-        boolean moved = board.moveDown();
+        boolean moved = b.moveDown();
 
         // After merging, bottom cell should be 4 and score increased by 4
         assertTrue(moved);
-        assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
-        assertTrue(board.getScore() >= 4);
+        assertEquals(4, b.getCell(b.getSize() - 1, 0).getValue());
+        assertTrue(b.getScore() >= 4);
     }
 
-    @Test
-    void moveDownDoesNotMergeDifferentTilesTest() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveDownDoesNotMergeDifferentTilesTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
         // Place two different tiles in the same column
-        board.setCell(0, 0, new Cell(2));
-        board.setCell(1, 0, new Cell(4));
+        b.setCell(0, 0, new Cell(2));
+        b.setCell(1, 0, new Cell(4));
 
-        boolean moved = board.moveDown();
+        boolean moved = b.moveDown();
 
         // The tiles should not merge, they should remain in their positions
         assertTrue(moved);
-        assertEquals(2, board.getCell(board.getSize() - 2, 0).getValue());
-        assertEquals(4, board.getCell(board.getSize() - 1, 0).getValue());
+        assertEquals(2, b.getCell(b.getSize() - 2, 0).getValue());
+        assertEquals(4, b.getCell(b.getSize() - 1, 0).getValue());
     }
 
-    @Test
-    public void testMoveDownMovesTileFromTopToBottomNotMoved() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveDownMovesTileFromTopToBottomNotMoved(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
-        board.setCell(DEFAULT_SIZE-1, 1, new Cell(2));
+        b.setCell(size - 1, 1, new Cell(2));
 
-        boolean moved = board.moveDown();
+        boolean moved = b.moveDown();
 
         assertFalse(moved);
     }
 
     // Move RIGHT tests
-    @Test
-    void moveRightChangeTheBoardTest() {
-        clearBoard(board);
-        board.setCell(0, 0, new Cell(2));
-        board.setCell(1, 1, new Cell(4));
-        assertTrue(board.moveRight());
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveRightChangeTheBoardTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
+        b.setCell(0, 0, new Cell(2));
+        b.setCell(1, 1, new Cell(4));
+        assertTrue(b.moveRight());
     }
 
-    @Test
-    void moveRightTileFromLeftToRightTest() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveRightTileFromLeftToRightTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
         // Place a tile in a cell
-        board.setCell(0, 0, new Cell(2));
+        b.setCell(0, 0, new Cell(2));
 
         // Move the board right
-        board.moveRight();
+        b.moveRight();
 
         // Check that the tile has moved to the rightmost position
-        assertEquals(2, board.getCell(0, board.getSize() - 1).getValue());
+        assertEquals(2, b.getCell(0, b.getSize() - 1).getValue());
     }
 
-    @Test
-    void moveRightMergesTilesAndIncrementsScoreTest() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveRightMergesTilesAndIncrementsScoreTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
         // Place two equal tiles so they should merge when moved left
-        board.setCell(0, 0, new Cell(2));
-        board.setCell(0, 1, new Cell(2));
+        b.setCell(0, 0, new Cell(2));
+        b.setCell(0, 1, new Cell(2));
 
         // Move the board right
-        board.moveRight();
+        b.moveRight();
 
         // After merging, the rightmost cell should be 4 and score increased by 4
-        assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
+        assertEquals(4, b.getCell(0, b.getSize() - 1).getValue());
 
     }
-    @Test
-    void moveRightDoesNotMergeDifferentTilesTest() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void moveRightDoesNotMergeDifferentTilesTest(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
         // Place two different tiles next to each other
-        board.setCell(0, 0, new Cell(2));
-        board.setCell(0, 1, new Cell(4));
+        b.setCell(0, 0, new Cell(2));
+        b.setCell(0, 1, new Cell(4));
 
         // Move the board right
-        board.moveRight();
+        b.moveRight();
 
         // The tiles should not merge, they should remain in their positions
-        assertEquals(2, board.getCell(0, board.getSize() - 2).getValue());
-        assertEquals(4, board.getCell(0, board.getSize() - 1).getValue());
+        assertEquals(2, b.getCell(0, b.getSize() - 2).getValue());
+        assertEquals(4, b.getCell(0, b.getSize() - 1).getValue());
     }
 
-    @Test
-    public void testMoveRightMovesTileFromLeftToRightNotMoved() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveRightMovesTileFromLeftToRightNotMoved(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
-        board.setCell(1, DEFAULT_SIZE-1, new Cell(2));
+        b.setCell(1, size - 1, new Cell(2));
 
-        boolean moved = board.moveRight();
+        boolean moved = b.moveRight();
 
         assertFalse(moved);
     }
@@ -508,18 +580,20 @@ class BoardTest {
         assertEquals(tileAmountExpected, grid.tileAmount());
     }
 
-    @Test
-    public void testMoveLeftMovesTileFromRightToLeftNotMoved() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveLeftMovesTileFromRightToLeftNotMoved(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
 
-        board.setCell(1, 0, new Cell(2));
+        b.setCell(1, 0, new Cell(2));
 
-        boolean moved = board.moveLeft();
+        boolean moved = b.moveLeft();
 
         assertFalse(moved);
     }
 
-    @Test 
+    @Test
     public void testNotEmptyPositions(){
         assertThrows(IllegalStateException.class, () -> {
             Board b = new Board(1);
@@ -538,100 +612,58 @@ class BoardTest {
 
     /**
      * Tests the isLosingBoard method when the board is full and another move can't be made.
+     * Uses a 2/4 checkerboard pattern (value = ((r + c) % 2 == 0) ? 2 : 4) so that no
+     * horizontal or vertical neighbors share the same value, regardless of board size
+     * (avoids overflowing powers of two on larger boards).
      */
-    @Test
-    public void testIsLosingBoardWithFullBoard() {
-        Board grid = new Board();
-        grid.clearBoard();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testIsLosingBoardWithFullBoard(int size) {
+        Board grid = new Board(size);
+        clearBoard(grid);
 
-        int gridSize = grid.getSize();
-
-        // create cells with different values so they can't be merged
-        ArrayList<Cell> list = new ArrayList<>(gridSize);
-        list.add(new Cell(2));
-        list.add(new Cell(4));
-        list.add(new Cell(8));
-        list.add(new Cell(16));
-
-        // insert cells in row 0 and 2 in ascending order
-        for (int c = 0; c < gridSize; c++) {
-            grid.setCell(0, c, list.get(c));
-            grid.setCell(2, c, list.get(c));
-        }
-
-        // insert cells in row 1 and 3 in descending order
-        for (int c = 0; c < gridSize; c++) {
-            grid.setCell(1, c, list.get(gridSize - c - 1));
-            grid.setCell(3, c, list.get(gridSize - c - 1));
-        }
+        fillCheckerboard(grid);
 
         assertTrue(grid.isLosingBoard());
     }
 
     /**
-     * Tests the isLosingBoard method when the board isn't full.
+     * Tests the isLosingBoard method when the board is full but has a mergeable pair.
+     * Starts from the same checkerboard pattern as testIsLosingBoardWithFullBoard and
+     * overwrites one cell so it matches its horizontal neighbor, creating a merge
+     * opportunity; isLosingBoard should then return false.
      */
-    @Test
-    public void testIsLosingBoardWithNotFullBoard() {
-        Board grid = new Board();
-        grid.clearBoard();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testIsLosingBoardWithNotFullBoard(int size) {
+        Board grid = new Board(size);
+        clearBoard(grid);
 
-        int gridSize = grid.getSize();
+        fillCheckerboard(grid);
 
-        // create cells with different values so they can't be merged
-        ArrayList<Cell> list = new ArrayList<>(gridSize);
-        list.add(new Cell(2));
-        list.add(new Cell(4));
-        list.add(new Cell(8));
-        list.add(new Cell(16));
-
-        // insert cells in row 0 and 2 in ascending order
-        for (int c = 0; c < gridSize; c++) {
-            grid.setCell(0, c, list.get(c));
-            grid.setCell(2, c, list.get(c));
-        }
-
-        // insert cells in row 1 and 3 in descending order
-        for (int c = 0; c < gridSize; c++) {
-            grid.setCell(1, c, list.get(gridSize - c - 1));
-            grid.setCell(3, c, list.get(gridSize - c - 1));
-        }
-
-        grid.setCell(0, 3, list.get(2)); // cell(8)
+        // Overwrite a cell so it matches its horizontal neighbor, creating a mergeable pair
+        Cell neighbor = grid.getCell(0, size - 2);
+        grid.setCell(0, size - 1, neighbor);
 
         assertFalse(grid.isLosingBoard());
     }
 
     /**
-     * Tests the isLosingBoard method when the board isn't full.
+     * Tests the isLosingBoard method when the board is full but has a mergeable pair.
+     * Mirrors testIsLosingBoardWithNotFullBoard but creates the mergeable pair vertically
+     * instead of horizontally.
      */
-    @Test
-    public void testIsLosingBoardWithNotFullBoard2() {
-        Board grid = new Board();
-        grid.clearBoard();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testIsLosingBoardWithNotFullBoard2(int size) {
+        Board grid = new Board(size);
+        clearBoard(grid);
 
-        int gridSize = grid.getSize();
+        fillCheckerboard(grid);
 
-        // create cells with different values so they can't be merged
-        ArrayList<Cell> list = new ArrayList<>(gridSize);
-        list.add(new Cell(2));
-        list.add(new Cell(4));
-        list.add(new Cell(8));
-        list.add(new Cell(16));
-
-        // insert cells in row 0 and 2 in ascending order
-        for (int c = 0; c < gridSize; c++) {
-            grid.setCell(0, c, list.get(c));
-            grid.setCell(2, c, list.get(c));
-        }
-
-        // insert cells in row 1 and 3 in descending order
-        for (int c = 0; c < gridSize; c++) {
-            grid.setCell(1, c, list.get(gridSize - c - 1));
-            grid.setCell(3, c, list.get(gridSize - c - 1));
-        }
-
-        grid.setCell(3, 0, list.get(0)); // cell(1)
+        // Overwrite a cell so it matches its vertical neighbor, creating a mergeable pair
+        Cell neighbor = grid.getCell(size - 2, 0);
+        grid.setCell(size - 1, 0, neighbor);
 
         assertFalse(grid.isLosingBoard());
     }
@@ -639,18 +671,20 @@ class BoardTest {
     /**
      * Tests the hasEmptyCells method with a grid with empty cells.
      */
-    @Test
-    public void testHasEmptyCellsWithEmptyCells() {
-        Board grid = new Board();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testHasEmptyCellsWithEmptyCells(int size) {
+        Board grid = new Board(size);
         assertTrue(grid.hasEmptyCells());
     }
 
     /**
      * Tests the hasEmptyCells method with a grid without empty cells.
      */
-    @Test
-    public void testHasEmptyCellsWithoutEmptyCells() {
-        Board grid = new Board();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testHasEmptyCellsWithoutEmptyCells(int size) {
+        Board grid = new Board(size);
         Cell cell = new Cell(2);
 
         for (int r = 0; r < grid.getSize(); r++) {
@@ -665,18 +699,20 @@ class BoardTest {
     /**
      * Tests the isFull method with a board that contains empty cells.
      */
-    @Test
-    public void testIsFullWithEmptyCells(){
-        Board grid = new Board();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testIsFullWithEmptyCells(int size){
+        Board grid = new Board(size);
         assertFalse(grid.isFull());
     }
 
     /**
      * Tests the isFull method with a board that is full.
      */
-    @Test
-    public void testIsFull(){
-        Board grid = new Board();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testIsFull(int size){
+        Board grid = new Board(size);
         Cell cell = new Cell(2);
 
         for (int r = 0; r < grid.getSize(); r++) {
@@ -687,35 +723,39 @@ class BoardTest {
 
         assertTrue(grid.isFull());
     }
-  
+
     /**
      * Verifies the hashcode method.
      *
-     * The test creates a board, which is a copy of another board, and compares their hashcodes. 
+     * The test creates a board, which is a copy of another board, and compares their hashcodes.
      * Must be equal.
     */
-    @Test
-    public void testHashcodeBoardEquals() {
-        Board b1 = new Board(board);
-        assertEquals(b1.hashCode(), board.hashCode()); // b1 is a copy of board, so their hashcodes should be equal
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testHashcodeBoardEquals(int size) {
+        Board b = new Board(size);
+        Board b1 = new Board(b);
+        assertEquals(b1.hashCode(), b.hashCode()); // b1 is a copy of b, so their hashcodes should be equal
     }
 
     /**
      * Verifies the hashcode method.
      *
-     * The test creates a board, which is a copy of another board, and compares their hashcodes. 
+     * The test creates a board, which is a copy of another board, and compares their hashcodes.
      * Then, it modifies the copy and checks that their hashcodes are not equal anymore.
     */
-    @Test
-    public void testHashcodeBoardNotEqual() {
-        Board b2 = new Board(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testHashcodeBoardNotEqual(int size) {
+        Board b = new Board(size);
+        Board b2 = new Board(b);
         boolean moved = b2.moveUp(); // If, by coincidence, the pieces were already on row 0, board b would remain the same, and the hashcodes would also be the same.
         if (moved) {
-            assertNotEquals(b2.hashCode(), board.hashCode());
+            assertNotEquals(b2.hashCode(), b.hashCode());
         } else {
             // If the moveUp() didn't change the board, we can force a change by adding a new cell
-            b2.setCell(board.getSize() - 1, board.getSize() - 1, new Cell(2));
-            assertNotEquals(b2.hashCode(), board.hashCode());
+            b2.setCell(b.getSize() - 1, b.getSize() - 1, new Cell(2));
+            assertNotEquals(b2.hashCode(), b.hashCode());
         }
     }
 
@@ -905,7 +945,7 @@ class BoardTest {
     public void testConstructorBoardWithSeedNotValidZero() {
         assertThrows(IllegalArgumentException.class, () -> {
             Board board = new Board(0, 0);
-        });    
+        });
     }
 
     /**
@@ -919,7 +959,7 @@ class BoardTest {
     public void testConstructorBoardWithSeedNotValidZNegative() {
         assertThrows(IllegalArgumentException.class, () -> {
             Board board = new Board(-1, 0);
-        });    
+        });
     }
 
     /**
@@ -927,12 +967,12 @@ class BoardTest {
      *
      * This test verifies that the constructor correctly creates a board from a string representation.
      */
-    @Test 
+    @Test
     public void testConstructorBoardWithStringRepresentation() {
         String boardString = "[0,0,0,0,4,2,0,0,0,0,0,0,2,2,2,2]";
         int size = DEFAULT_SIZE;
         Board board = new Board(boardString, size);
-        assertEquals(board.toString(), 
+        assertEquals(board.toString(),
         "Score: 0\n" +
                 "+-----+-----+-----+-----+\n" +
                 "|     |     |     |     |\n" +
@@ -950,12 +990,12 @@ class BoardTest {
      *
      * This test verifies that the constructor correctly creates a board from a string representation of all zeros.
      */
-    @Test 
+    @Test
     public void testConstructorBoardWithStringRepresentationZero() {
         String boardString = "[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]";
         int size = DEFAULT_SIZE;
         Board board = new Board(boardString, size);
-        assertEquals(board.toString(), 
+        assertEquals(board.toString(),
         "Score: 0\n" +
                 "+-----+-----+-----+-----+\n" +
                 "|     |     |     |     |\n" +
@@ -975,13 +1015,13 @@ class BoardTest {
      *
      * @throws IllegalArgumentException if the size is negative
      */
-    @Test 
+    @Test
     public void testConstructorBoardWithStringRepresentationInvalidSize() {
         String boardString = "[2,0,0,2,0,0,4,0,0,2,0,4,0,0,0,0]";
         int size = -1;
         assertThrows(IllegalArgumentException.class, () -> {
             Board board = new Board(boardString, size);
-        }); 
+        });
     }
 
     /**
@@ -991,18 +1031,18 @@ class BoardTest {
      *
      * @throws IllegalArgumentException if the string representation doesn't match the size
      */
-    @Test 
+    @Test
     public void testConstructorBoardWithStringRepresentationNotMatch() {
         String boardString = "[2,0,0,2,0,0,4,0,0,2,0,4,0,0,0,0]";
         int size = 14;
         assertThrows(IllegalArgumentException.class, () -> {
             Board board = new Board(boardString, size);
-        }); 
+        });
     }
 
     /**
     * Tests the constructor of the `Board` class with a string representation that has an invalid comma.
-    * 
+    *
     * This test verifies that the constructor throws an `IllegalArgumentException` when the string representation has an invalid comma.
      */
     @Test
@@ -1011,12 +1051,12 @@ class BoardTest {
         int size = 4;
         assertThrows(IllegalArgumentException.class, () -> {
             Board board = new Board(boardString, size);
-        });  
+        });
     }
 
     /**
     * Tests the constructor of the `Board` class with a string representation that has an invalid double comma.
-    * 
+    *
     * This test verifies that the constructor throws an `NumberFormatException` when the string representation has an invalid double comma.
      */
     @Test
@@ -1025,57 +1065,57 @@ class BoardTest {
         int size = 4;
         assertThrows(NumberFormatException.class, () -> {
             Board board = new Board(boardString, size);
-        });  
+        });
     }
 
     /**
      * Tests the constructor of the `Board` class with a string representation that is missing the closing bracket.
-     * 
+     *
      * This test verifies that the constructor throws an `IllegalArgumentException` when the string representation is missing the closing bracket.
      */
-    @Test 
+    @Test
     public void testConstructorBoardWithStringRepresentationWithoutEndBracket() {
         String boardString = "[2,0,0,2,0,0,4,0,0,2,0,4,0,0,0";
         int size = 4;
         assertThrows(IllegalArgumentException.class, () -> {
             Board board = new Board(boardString, size);
-        });  
+        });
     }
 
     /**
      * Tests the constructor of the `Board` class with a string representation that is missing the closing bracket.
-     * 
+     *
      * This test verifies that the constructor throws an `IllegalStateException` when the string representation is missing the closing bracket.
      */
-    @Test 
+    @Test
     public void testConstructorBoardWithStringRepresentationWithoutBeginBracket() {
         String boardString = "2,0,0,2,0,0,4,0,0,2,0,4,0,0,0]";
         int size = 4;
         assertThrows(IllegalArgumentException.class, () -> {
             Board board = new Board(boardString, size);
-        });  
+        });
     }
 
     /**
      * Tests the constructor of the `Board` class with a string representation that is missing the closing bracket.
-     * 
+     *
      * This test verifies that the constructor throws an `IllegalArgumentException` when the string representation is missing the closing bracket.
      */
-    @Test 
+    @Test
     public void testConstructorBoardWithStringRepresentationWithAnInvalidNumber() {
         String boardString = "2,0,0,2,0,0,4,0,0,2,0,4,0,0,0,8]";
         int size = 4;
         assertThrows(IllegalArgumentException.class, () -> {
             Board board = new Board(boardString, size);
-        });  
+        });
     }
 
     /**
      * Tests the constructor of the `Board` class with a string representation that is empty.
-     * 
+     *
      * This test verifies that the constructor throws an `IllegalArgumentException` when the string representation is empty.
      */
-    @Test 
+    @Test
     public void testConstructorBoardWithStringRepresentationEmpty() {
         String boardString = "[]";
         int size = 4;

@@ -180,9 +180,6 @@ public class Board {
         // Convert each number to an integer and add to the list
         for (int i = 0; i < numbersBoard.length; i++) {
             int number = Integer.parseInt(numbersBoard[i].trim()); 
-            if (number > 4) {
-                throw new IllegalArgumentException("Board number must be less than or equal to 4: " + number);
-            }
             board.add(number);
         }
 
