@@ -48,9 +48,11 @@ def ask_llm(prompt):
     ):  # The free models has rate limit (429 Error), so we retry a few times with a delay
         try:
             with urllib.request.urlopen(req, timeout=300) as resp:
-                return json.load(resp)["choices"][0]["message"]["content"]
+                # some models return no content at all: treat it as an empty answer
+                return json.load(resp)["choices"][0]["message"]["content"] or ""
         except urllib.error.HTTPError as e:
-            if e.code != 429 or attempt == 4:
+            # 429 = rate limited, 5xx = provider temporarily down: wait and retry
+            if (e.code != 429 and e.code < 500) or attempt == 4:
                 raise
-            print("  rate limited, retrying in 30s...")
+            print(f"  HTTP {e.code}, retrying in 30s...")
             time.sleep(30)
