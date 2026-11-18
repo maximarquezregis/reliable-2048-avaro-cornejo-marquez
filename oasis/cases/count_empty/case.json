@@ -1,0 +1,12 @@
+{
+  "method": "countEmpty",
+  "params": [
+    {
+      "name": "board",
+      "type": "int[]"
+    }
+  ],
+  "return_type": "int",
+  "precondition": "java.util.Arrays.stream(board).allMatch(v -> v == 0 || (v >= 2 && (v & (v - 1)) == 0))",
+  "assertion": "result == java.util.Arrays.stream(board).filter(v -> v == 0).count()"
+}
