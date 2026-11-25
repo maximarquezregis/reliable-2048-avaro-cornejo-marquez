@@ -29,7 +29,7 @@ public final class Cell {
     /**
      * Creates a new cell with the given value.
      * 
-     * @param value the value of the cell (must be 0 or a power of two)
+     * @param value the value of the cell (must be 0 or a power of two (not equal to 1))
      * @throws IllegalArgumentException if the value is negative or not a power of two (except 0)
      */
     public Cell(int value) {
@@ -38,6 +38,9 @@ public final class Cell {
         }
         if (value != 0 && !isPowerOf2(value)) {
             throw new IllegalArgumentException("Cell value must be a power of two: " + value);
+        }
+        if (value == 1) {
+            throw new IllegalArgumentException("The cell value cannot be: " + value);
         }
         this.value = value;
     }
@@ -136,7 +139,7 @@ public final class Cell {
      */
     @CheckRep 
     public boolean repOk() {
-        if (value < 0) {
+        if (value < 0 || value == 1) {
             return false; 
         } else {
             if (value == 0) {

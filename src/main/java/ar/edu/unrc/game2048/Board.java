@@ -52,7 +52,7 @@ public class Board {
     /**
      * Random generator for addRandomTile()
      */
-    private static Random randomGen;
+    private Random randomGen;
 
     /**
      * Creates a new board of the default size (4x4) with two random tiles.
@@ -110,7 +110,7 @@ public class Board {
         this.size = other.size;
         this.grid = new Cell[size][size];
         this.score = other.score;
-        randomGen = new Random(LocalDateTime.now().getNano());
+        randomGen = other.randomGen;
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
                 this.grid[r][c] = other.grid[r][c];
@@ -135,6 +135,7 @@ public class Board {
         this.size = size;
         this.score = 0;
         this.grid = new Cell[size][size];
+        this.randomGen = new Random(LocalDateTime.now().getNano());
 
         // Position in the boardList to read the next number from
         int numberBoard = 0;
@@ -180,9 +181,6 @@ public class Board {
         // Convert each number to an integer and add to the list
         for (int i = 0; i < numbersBoard.length; i++) {
             int number = Integer.parseInt(numbersBoard[i].trim()); 
-            if (number > 4) {
-                throw new IllegalArgumentException("Board number must be less than or equal to 4: " + number);
-            }
             board.add(number);
         }
 

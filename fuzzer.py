@@ -125,9 +125,9 @@ class RandomFuzzer(Fuzzer):
 
 def main():
     runner = CLIRunner()
-    fuzzer = RandomFuzzer(min_length=10, max_length=50)
+    fuzzer = RandomFuzzer(min_length=50, max_length=500)
 
-    trials = 20
+    trials = 1000
     outcomes = {PASS: 0, FAIL: 0, UNRESOLVED: 0}
 
     print(f"Running {trials} fuzzing trials...\n")
