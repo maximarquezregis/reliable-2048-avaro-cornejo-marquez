@@ -1,27 +1,30 @@
 """
-Simple OASIs-like tool: LLM-assisted oracle (assertion) assessment.
+Simple OASIs-like tool: LLM-assisted oracle (assertion) assessment and improvement.
 
-Given a Java program and an assertion, the tool generate:
+Each run is ONE round, for the assertion currently in case.json:
 
-  1. False positives (Strong assertions): asks the LLM for inputs that
-     violate the assertion, runs them on the real program and reports the
-     ones where the assertion is actually false.
-  2. False negatives (Weak assertions): asks the LLM for mutants of the
-     method, runs them on the inputs and reports the mutants that the
-     assertion cannot kill even though they behave differently from
-     the original program.
+  1. False-positive search: asks the LLM for an input on which the CORRECT
+     program makes the assertion fail. If the input really violates the
+     assertion, it is reported (the assertion is too strong -> weaken/refine).
+  2. False-negative search (only if no false positive was found): asks the
+     LLM for a mutant (a faulty version of the method) plus an input where
+     its wrong result still satisfies the assertion. If confirmed, it is
+     reported (the assertion is too weak -> strengthen).
+  3. If neither search finds a counterexample, there is no evidence against
+     the assertion.
 
-The tool only gives feedback; the user decides how to refine the assertion.
+Each round writes a new report, results/<case>/round-N.md. The user then edits
+the assertion in case.json and runs the tool again, or decides to stop. The
+tool never changes the assertion by itself.
 
 Modules:
     llm.py      queries to the LLM
     prompts.py  prompts and parsing of the LLM answers
     report.py   Markdown report generation
-    oasis.py    Java execution, analysis and entry point (this file)
+    oasis.py    Java execution, searches and one round (this file)
 
 Usage:
-    python3 oasis.py cases/merge_row
-    python3 oasis.py cases/merge_row --assertion "result.length == row.length && ..."
+    python3 oasis.py cases/max_tile
 """
 
 import argparse
@@ -33,8 +36,10 @@ import subprocess
 import tempfile
 
 from llm import ask_llm, load_env
-from prompts import inputs_prompt, mutants_prompt, parse_inputs, parse_mutants
+from prompts import fn_prompt, fp_prompt, parse_input, parse_mutant
 from report import write_report
+
+MAX_ATTEMPTS = 3  # LLM candidates tried per search before giving up
 
 # ---------------------------------------------------------------------------
 # Java execution
@@ -44,6 +49,7 @@ from report import write_report
 def build_harness(case, assertion, inputs):
     """Java main that runs every input and prints, per input, the verdict and the result."""
     params = case["params"]
+    pre = case.get("precondition", "true")
     call_args = ", ".join(
         p["name"] + ".clone()" if p["type"].endswith("[]") else p["name"]
         for p in params
@@ -54,9 +60,13 @@ def build_harness(case, assertion, inputs):
         blocks.append(f"""
         try {{
             {decls}
-            {case["return_type"]} result = Subject.{case["method"]}({call_args});
-            boolean ok = ({assertion});
-            System.out.println("{i}|" + (ok ? "HOLDS" : "VIOLATED") + "|" + show(result));
+            if (!({pre})) {{
+                System.out.println("{i}|INVALID|");
+            }} else {{
+                {case["return_type"]} result = Subject.{case["method"]}({call_args});
+                boolean ok = ({assertion});
+                System.out.println("{i}|" + (ok ? "HOLDS" : "VIOLATED") + "|" + show(result));
+            }}
         }} catch (Throwable t) {{
             System.out.println("{i}|EXCEPTION|" + t);
         }}""")
@@ -103,7 +113,7 @@ def run_java(subject_src, harness_src):
             return {}  # e.g. a mutant with an infinite loop
         out = {}
         for line in r.stdout.splitlines():
-            m = re.match(r"^(\d+)\|(HOLDS|VIOLATED|EXCEPTION)\|(.*)$", line)
+            m = re.match(r"^(\d+)\|(HOLDS|VIOLATED|EXCEPTION|INVALID)\|(.*)$", line)
             if m:  # ignore any other output printed by the program itself
                 out[int(m.group(1))] = (m.group(2), m.group(3))
         return out
@@ -111,77 +121,94 @@ def run_java(subject_src, harness_src):
         shutil.rmtree(tmp)
 
 
+def run_one(src, case, assertion, inp):
+    """Run one input. Returns (verdict, result) or None if it does not compile / times out."""
+    out = run_java(src, build_harness(case, assertion, [inp]))
+    return out.get(0) if out else None
+
+
 # ---------------------------------------------------------------------------
-# OASIs analysis
+# OASIs searches
 # ---------------------------------------------------------------------------
 
 
-def analyze(case_dir, assertion=None):
-    with open(os.path.join(case_dir, "case.json")) as f:
-        case = json.load(f)
-    with open(os.path.join(case_dir, "Subject.java")) as f:
-        subject = f.read()
-    assertion = assertion or case["assertion"]
+def fp_search(case, subject, assertion):
+    """False-positive search: one input where the correct program violates the assertion."""
+    tried = []
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        print(f"  attempt {attempt}/{MAX_ATTEMPTS}")
+        try:
+            inp = parse_input(ask_llm(fp_prompt(case, subject, assertion, tried)))
+        except (ValueError, OSError) as e:  # unparseable answer or network error
+            print(f"  skipped: {e}")
+            continue
+        if len(inp) != len(case["params"]):
+            continue
+        res = run_one(subject, case, assertion, inp)
+        if res and res[0] == "VIOLATED":
+            return {"input": inp, "result": res[1]}
+        tried.append(inp)
+    return None
 
-    # ---- 1. False positives: inputs that violate the assertion ----
-    print("[1/2] Asking the LLM for inputs that could violate the assertion...")
-    inputs = parse_inputs(ask_llm(inputs_prompt(case, subject, assertion)))
-    inputs = [i for i in inputs if len(i) == len(case["params"])]
-    original = run_java(subject, build_harness(case, assertion, inputs))
-    if original is None:  # an LLM input did not compile: try them one by one
-        ok = [
-            i
-            for i in inputs
-            if run_java(subject, build_harness(case, assertion, [i])) is not None
-        ]
-        inputs = ok
-        original = run_java(subject, build_harness(case, assertion, inputs))
-    violating = [
-        (inputs[i], res) for i, (v, res) in original.items() if v == "VIOLATED"
-    ]
 
-    # ---- 2. False negatives: mutants the assertion cannot kill ----
-    print("[2/2] Asking the LLM for mutants the assertion might not kill...")
-    mutants = parse_mutants(ask_llm(mutants_prompt(case, subject, assertion)))
-    # only inputs where the assertion holds on the original program can kill a mutant
-    good = [i for i, (v, _) in original.items() if v == "HOLDS"]
-    mutant_results = []
-    for desc, code in mutants:
-        out = run_java(code, build_harness(case, assertion, inputs))
-        if out is None:
-            status = "DOES NOT COMPILE"
-        elif any(out.get(i, ("TIMEOUT",))[0] != "HOLDS" for i in good):
-            status = "KILLED"
-        elif all(out[i][1] == original[i][1] for i in good):
-            status = "EQUIVALENT ON INPUTS"  # same outputs as the original: no evidence
-        else:
-            status = "SURVIVED"
-        mutant_results.append((desc, code, status, out))
+def fn_search(case, subject, assertion):
+    """False-negative search: one mutant whose wrong result still satisfies the assertion."""
+    tried = []
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        print(f"  attempt {attempt}/{MAX_ATTEMPTS}")
+        try:
+            desc, inp, code = parse_mutant(ask_llm(fn_prompt(case, subject, assertion, tried)))
+        except (ValueError, OSError) as e:  # unparseable answer or network error
+            print(f"  skipped: {e}")
+            continue
+        if len(inp) != len(case["params"]):
+            continue
+        orig = run_one(subject, case, assertion, inp)
+        mut = run_one(code, case, assertion, inp)
+        # confirmed only if the assertion holds on both runs but the mutant's result is wrong
+        if orig and mut and orig[0] == mut[0] == "HOLDS" and orig[1] != mut[1]:
+            return {"description": desc, "code": code, "input": inp,
+                    "expected": orig[1], "got": mut[1]}
+        tried.append(desc)
+    return None
 
-    return case, subject, assertion, inputs, original, violating, mutant_results, good
+
+# ---------------------------------------------------------------------------
+# One round
+# ---------------------------------------------------------------------------
 
 
 def main():
     load_env()
-    ap = argparse.ArgumentParser(
-        description="Simple OASIs: LLM-based assertion assessment"
-    )
+    ap = argparse.ArgumentParser(description="Simple OASIs: one round of LLM-based assertion assessment")
     ap.add_argument("case_dir", help="folder with Subject.java and case.json")
-    ap.add_argument(
-        "--assertion", help="assertion to analyze (default: the one in case.json)"
-    )
-    ap.add_argument(
-        "--label",
-        default="initial",
-        help="name of this run, used in the report file name",
-    )
     args = ap.parse_args()
 
-    data = analyze(args.case_dir, args.assertion)
-    path, fp, fn = write_report(args.case_dir, args.label, data)
-    print(f"False positives (violating tests): {fp}")
-    print(f"False negatives (surviving mutants): {fn}")
-    print(f"Report: {path}")
+    with open(os.path.join(args.case_dir, "case.json")) as f:
+        case = json.load(f)
+    with open(os.path.join(args.case_dir, "Subject.java")) as f:
+        subject = f.read()
+    assertion = case["assertion"]
+    call = case["method"]
+
+    print(f"Assertion: {assertion}")
+    print("False-positive search...")
+    fp = fp_search(case, subject, assertion)
+    fn = None
+    if not fp:
+        print("False-negative search...")
+        fn = fn_search(case, subject, assertion)
+
+    if fp:
+        print(f"FALSE POSITIVE: {call}({', '.join(fp['input'])}) returns {fp['result']} "
+              "(correct), but the assertion is false -> weaken or refine it.")
+    elif fn:
+        print(f"FALSE NEGATIVE: mutant '{fn['description']}': {call}({', '.join(fn['input'])}) "
+              f"returns {fn['got']} (correct: {fn['expected']}) and the assertion still holds "
+              "-> strengthen it.")
+    else:
+        print("No counterexample found: no evidence that the assertion is too strong or too weak.")
+    print(f"Report: {write_report(args.case_dir, case, subject, assertion, fp, fn)}")
 
 
 if __name__ == "__main__":

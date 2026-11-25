@@ -1,6 +1,12 @@
 {
   "method": "maxTile",
-  "params": [{"name": "board", "type": "int[]"}],
+  "params": [
+    {
+      "name": "board",
+      "type": "int[]"
+    }
+  ],
   "return_type": "int",
-  "assertion": "result >= 2 && result <= 2048"
+  "precondition": "java.util.Arrays.stream(board).allMatch(v -> v == 0 || (v >= 2 && (v & (v - 1)) == 0))",
+  "assertion": "java.util.Arrays.stream(board).allMatch(v -> v <= result) && (result == 0 || java.util.Arrays.stream(board).anyMatch(v -> v == result))"
 }

@@ -2,31 +2,49 @@
 
 ## 1. The tool
 
-`oasis/oasis.py` (with `llm.py`, `prompts.py` and `report.py`) is a simple version of OASIs. Given a Java program and an assertion
-(a postcondition), it queries an LLM and gives the user feedback to refine the assertion.
-The tool never changes the assertion itself: the final decision is always the user's.
+`oasis/oasis.py` (with `llm.py`, `prompts.py` and `report.py`) is a simple version of OASIs.
+Given a Java method and an assertion (a postcondition), it uses an LLM to look for
+counterexamples. The developer revises the assertion until no counterexample is found.
+The tool never changes the assertion itself: the decision is always the developer's.
 
-It performs two checks:
+The tool works in **rounds**. Each round reports **at most one** counterexample:
 
-| Check | Question | What the LLM is asked for | How the tool validates the answer |
+| Step | Question | LLM is asked for | The tool confirms it if… |
 |---|---|---|---|
-| False positives | Is the assertion **too strong**? | Inputs that may make the assertion false | Runs them on the real (correct) program. Every input where the assertion is false is a test that violates the assertion. |
-| False negatives | Is the assertion **too weak**? | Mutants of the method that the assertion would not detect | Compiles and runs every mutant on the inputs where the assertion holds on the original program. A mutant **survives** if the assertion holds on all those inputs but some output differs from the original. |
+| 1. False-positive search | Is the assertion **too strong**? | One valid input | the **correct** program, run on that input, makes the assertion **false**. |
+| 2. False-negative search (only if step 1 found nothing) | Is the assertion **too weak**? | One mutant (a faulty version of the method) plus one input | on that input the mutant returns a **wrong** value and the assertion is still **true**. |
+| 3. No evidence | – | – | neither search found anything (3 LLM attempts each). |
 
-Mutant statuses in the reports:
+Each run of the tool is **one round** and writes its own report, `results/<case>/round-N.md`.
+After a false positive the developer weakens or refines the assertion; after a false negative
+the developer strengthens it. The developer edits the assertion by hand in `case.json` and runs
+the tool again, which is a new round. As in OASIs, the developer decides when to stop.
 
-- `KILLED`: the assertion fails (or the mutant crashes/loops) on some input.
-- `SURVIVED`: the assertion holds but the mutant behaves differently → evidence that the assertion is too weak.
-- `EQUIVALENT ON INPUTS`: same outputs as the original on all inputs → no evidence.
-- `DOES NOT COMPILE`: discarded.
+LLM answers are never trusted directly. Every input and mutant is compiled and executed with
+`javac`/`java` before it is reported. Inputs that do not satisfy the case's **precondition**
+are discarded. For both case studies the precondition is "every cell is 0 or a power of two ≥ 2",
+which means a valid 2048 board.
 
-LLM answers are never trusted directly: every input and mutant is executed with `javac`/`java`
-before being reported.
+### Files
 
-### Setup and usage
+| Path | Content |
+|---|---|
+| `oasis/oasis.py` | Java harness and the two searches of one round (entry point) |
+| `oasis/llm.py` | Call to the LLM API |
+| `oasis/prompts.py` | Prompts and parsing of the LLM answers |
+| `oasis/report.py` | Markdown report |
+| `oasis/cases/<case>/` | `Subject.java` (the method) and `case.json` (signature, precondition, current assertion) |
+| `oasis/results/<case>/round-N.md` | Report of round N (one file per run) |
 
-To use the tool, create `oasis/.env`
-(git-ignored) with a free OpenRouter key:
+---
+
+## 2. How to run it (cheat sheet)
+
+### Setup (once)
+
+Requirements: Python 3 and a JDK (`javac` and `java` on the `PATH`). No pip packages are needed.
+
+Create `oasis/.env` (it is git-ignored) with a free OpenRouter key:
 
 ```
 OASIS_API_KEY=<your key>
@@ -34,23 +52,74 @@ OASIS_BASE_URL=https://openrouter.ai/api/v1
 OASIS_MODEL=nvidia/nemotron-3-ultra-550b-a55b:free
 ```
 
-A case study is a folder with `Subject.java` (a class with a static method) and `case.json`
-(method name, parameters, return type and initial assertion). To run it:
+### Flow
 
-```bash
-cd oasis
-python3 oasis.py cases/max_tile                                   # initial assertion
-python3 oasis.py cases/max_tile --label refined --assertion "..."  # refined assertion
+```
+edit the assertion in cases/<case>/case.json
+        │
+        ▼
+python3 oasis.py cases/<case>          ← one run = one round
+        │
+        ├─► false-positive search: LLM proposes an input
+        │       └─► Java harness runs the CORRECT method on it
+        │             (checks the precondition, evaluates the assertion)
+        │
+        ├─► (if none) false-negative search: LLM proposes a mutant + input
+        │       └─► Java harness runs the original AND the mutant on it
+        │
+        └─► report written to results/<case>/round-N.md
+                │
+                ▼
+        developer reads the counterexample and decides:
+          • edit the assertion in case.json and run again (round N+1), or
+          • stop and keep the assertion
 ```
 
-The report is written to `oasis/results/<case>-<label>.md`.
+### Step by step
 
-Model used in all runs: `nvidia/nemotron-3-ultra-550b-a55b:free` (OpenRouter).
-LLM answers are not deterministic, so new runs may give different inputs and mutants.
+1. **Write the assertion** in `oasis/cases/<case>/case.json`, in the `"assertion"` field. It is a
+   Java boolean expression that can use `result` and the parameters, for example
+   `"result >= 2 && result <= 2048"`.
+
+2. **Run one round:**
+   ```bash
+   cd oasis
+   python3 oasis.py cases/max_tile
+   ```
+
+3. **The tool runs the Java harness.** For every candidate it builds a small `Harness.java`. The
+   harness declares the input, checks the precondition, calls `Subject.<method>(...)` and
+   evaluates the assertion. It prints `HOLDS`, `VIOLATED`, `INVALID` or `EXCEPTION`. You will see:
+   ```
+   Assertion: result >= 2 && result <= 2048
+   False-positive search...
+     attempt 1/3
+   FALSE POSITIVE: maxTile(new int[]{}) returns 0 (correct), but the assertion is false -> weaken or refine it.
+   Report: .../oasis/results/max_tile/round-1.md
+   ```
+
+4. **Read the report** of this round in `oasis/results/<case>/round-N.md`. Earlier rounds are never
+   overwritten: each run adds the next number.
+
+5. **Decide (human in the loop):**
+   - false positive → the assertion rejects a correct result → weaken or refine it;
+   - false negative → the assertion accepts a wrong result → strengthen it;
+   - no counterexample → no evidence against the assertion, so you can stop.
+
+   To continue, edit the assertion in `case.json` and go back to step 2. To stop, just don't run it again.
 
 ---
 
-## 2. Case study 1: `maxTile` – an assertion that is too strong
+## 3. Case studies
+
+Each round was a separate run, and every input and mutant was compiled and executed
+in Java, so only real counterexamples were reported. After the runs, each `case.json` was left with
+the final assertion.
+
+## 3.1 Case study 1: `maxTile`
+
+Reports: [`oasis/results/max_tile/`](../oasis/results/max_tile/), one file per round
+(`round-1.md` … `round-5.md`).
 
 **Program** (`oasis/cases/max_tile/Subject.java`): returns the highest tile of a 2048 board
 given as a flat array (0 = empty cell, so an empty board returns 0).
@@ -65,139 +134,72 @@ public static int maxTile(int[] board) {
 }
 ```
 
-**Initial assertion**, similar to what Daikon infers from traces of normal games, where
-there is always a tile and nobody passed 2048:
+**Initial assertion**, the kind Daikon infers from traces of normal games, where there is always
+a tile and nobody passes 2048: `result >= 2 && result <= 2048`.
 
-```java
-result >= 2 && result <= 2048
-```
+| Round | Assertion | Counterexample | Verdict |
+|---|---|---|---|
+| 1 | `result >= 2 && result <= 2048` | `maxTile({})` returns `0` | False positive |
+| 2 | `result >= 0 && result <= 2048` | `maxTile({4096})` returns `4096` | False positive |
+| 3 | `result >= 0` | mutant whose loop starts at index 1: `{4, 2, 0}` → `2` (correct `4`) | False negative |
+| 4 | `result >= 0 && allMatch(v -> v <= result)` | mutant `return max * 2`: `{2, 4}` → `8` (correct `4`) | False negative |
+| 5 | `allMatch(v -> v <= result) && (result == 0 \|\| anyMatch(v -> v == result))` | none | No evidence → **stop** |
 
-### Iteration 1 (report: [`max_tile-initial.md`](../oasis/results/max_tile-initial.md))
+(`allMatch`/`anyMatch` are short for `java.util.Arrays.stream(board).allMatch(...)` and `.anyMatch(...)`.)
 
-**False positives: 6 of 12 inputs violate the assertion.** Some of them:
+Between rounds, the developer edited the assertion in `case.json` and ran the tool again:
 
-| input | result | why the assertion is wrong |
-|---|---|---|
-| `new int[]{}` / `new int[]{0, 0, 0}` | `0` | an empty board is valid and its max is 0 |
-| `new int[]{4096}` | `4096` | 2048 can keep going after reaching 2048 |
-| `new int[]{1, 1, 1}`, `new int[]{-1, -2, -3}` | `1`, `0` | invalid tiles: the user may decide these inputs are outside the precondition |
-
-**False negatives: 2 surviving mutants.**
-
-| mutant | example |
-|---|---|
-| `return 2;` (constant) | `{2048}` → original `2048`, mutant `2`, assertion holds |
-| caps the maximum at 1024 | `{2048}` → original `2048`, mutant `1024`, assertion holds |
-
-**Feedback:** the assertion is both too strong (bounds 2 and 2048) and too weak (it does not
-relate `result` with `board` at all).
-
-**User decision:** remove the arbitrary bounds and say what a maximum is: no tile is greater
-than the result, and the result is one of the tiles (or 0):
-
-```java
-result >= 0
-&& java.util.Arrays.stream(board).allMatch(v -> v <= result)
-&& (result == 0 || java.util.Arrays.stream(board).anyMatch(v -> v == result))
-```
-
-### Iteration 2 (report: [`max_tile-refined.md`](../oasis/results/max_tile-refined.md))
-
-- **False positives: 0 of 12.** Inputs such as `{}`, `{-2, -4, -8}`, `{1024, 2048, 4096}`
-  and `{Integer.MAX_VALUE, 0}` now satisfy the assertion.
-- **False negatives: 0.** 4 mutants were killed. The other 2 are `EQUIVALENT ON INPUTS`:
-  they modify the input array (sort it, overwrite the first element) but return the same value.
-  The tool calls each method with a copy of the array, so the assertion cannot see these side
-  effects. If they matter, the user could add a frame condition such as "`board` is not modified".
-
-**Result:** the refined assertion is accepted. No evidence that it is too strong or too weak.
+1. An empty board is valid and its highest tile is 0, so the lower bound is relaxed to `result >= 0`.
+2. The game goes on after 2048, so the upper bound is dropped.
+3. `result >= 0` says nothing about the board. Require that no tile is greater than `result`.
+4. An upper bound is not enough: a result that is too big also passes. Require that `result` is one
+   of the tiles, or 0 for an empty board.
+5. No counterexample, so the developer stops here. In round 5 the LLM tried 3 inputs (`{}`, `{0, 0, 0}`, `{16, 2, 16, 4}`) and 3 mutants
+   (the loop starting at index 1, an inverted comparison, returning the last cell), and the assertion
+   detected all of them. The final assertion is the full definition of "maximum".
 
 ---
 
-## 3. Case study 2: `mergeRowLeft` – an assertion that is too weak
+## 3.2 Case study 2: `countEmpty`
 
-**Program** (`oasis/cases/merge_row/Subject.java`): the core move of 2048. It slides a row
-to the left and merges equal adjacent tiles, each tile merging at most once.
-Example: `[2, 2, 4, 0] → [4, 4, 0, 0]`.
+Reports: [`oasis/results/count_empty/`](../oasis/results/count_empty/) (`round-1.md`, `round-2.md`).
+
+**Program** (`oasis/cases/count_empty/Subject.java`): counts the empty cells (0) of a board.
+It is the value behind `Board.getEmptyPositions().size()` in the game.
 
 ```java
-public static int[] mergeRowLeft(int[] row) {
-    int[] result = new int[row.length];
-    int pos = 0, last = 0;
-    for (int v : row) {
-        if (v == 0) continue;
-        if (v == last) { result[pos - 1] = v * 2; last = 0; }
-        else           { result[pos++] = v;      last = v; }
+public static int countEmpty(int[] board) {
+    int count = 0;
+    for (int v : board) {
+        if (v == 0) count++;
     }
-    return result;
+    return count;
 }
 ```
 
-**Initial assertion**, a typical weak Daikon invariant (`size(return[]) == size(row[])`):
+**Initial assertion**, a typical weak invariant: `result >= 0`.
 
-```java
-result.length == row.length
-```
-
-### Iteration 1 (report: [`merge_row-initial.md`](../oasis/results/merge_row-initial.md))
-
-- **False positives: 0 of 12.** The assertion is never violated, as expected for a weak assertion.
-- **False negatives: 3 of 6 mutants survive.**
-
-| surviving mutant | example input | original | mutant |
+| Round | Assertion | Counterexample | Verdict |
 |---|---|---|---|
-| does not reset `last` after a merge (chained merges) | `{2, 2, 2, 2}` | `[4, 4, 0, 0]` | `[4, 0, 0, 0]` |
-| wrong `last` update (never merges) | `{2, 2, 4, 0}` | `[4, 4, 0, 0]` | `[2, 2, 4, 0]` |
-| merge writes to the wrong position | `{2, 2, 4, 0}` | `[4, 4, 0, 0]` | `[2, 4, 0, 0]` |
+| 1 | `result >= 0` | mutant that counts the non-zero cells: `{0, 2, 4, 8}` → `3` (correct `1`) | False negative |
+| 2 | `result == java.util.Arrays.stream(board).filter(v -> v == 0).count()` | none | No evidence → **stop** |
 
-**Feedback:** the assertion is too weak: it only talks about the length.
-
-**User decision:** add two properties of a 2048 move. The sum of the tiles is preserved
-(merging `x + x` gives `2x`) and the tiles are packed to the left (no tile after a zero):
-
-```java
-result.length == row.length
-&& java.util.Arrays.stream(result).sum() == java.util.Arrays.stream(row).sum()
-&& java.util.stream.IntStream.range(1, result.length)
-       .allMatch(i -> result[i - 1] != 0 || result[i] == 0)
-```
-
-With this assertion, the first and third mutants of iteration 1 are killed, because they
-change the sum. The mutant that never merges tiles does not die: it returns the row as is ([2,2,4,0]), which preserves the sum and already has the tiles positioned to the left. 
-
-### Iteration 2 (report: [`merge_row-refined.md`](../oasis/results/merge_row-refined.md))
-
-- **False positives: 0 of 12.**
-- **False negatives: 6 of 6 mutants survive.** Given the new assertion, the LLM generated
-  mutants that keep the sum and the left packing but merge wrongly:
-
-| surviving mutant | example input | original | mutant |
-|---|---|---|---|
-| never merges | `{2, 2, 2, 2}` | `[4, 4, 0, 0]` | `[2, 2, 2, 2]` |
-| chain merge (merged value is merged again) | `{2, 2, 2, 2}` | `[4, 4, 0, 0]` | `[8, 0, 0, 0]` |
-| processes the row right to left | `{4, 4, 8, 8}` | `[8, 16, 0, 0]` | `[16, 8, 0, 0]` |
-| resets `last` on zeros | `{2, 0, 2, 0}` | `[4, 0, 0, 0]` | `[2, 2, 0, 0]` |
-| merges different adjacent tiles | `{2, 4, 2, 4}` | `[2, 4, 2, 4]` | `[6, 6, 0, 0]` |
-
-**Feedback:** the refinement is better (it kills the mutants of iteration 1) but it is
-still too weak. Sum preservation and left packing do not describe *which* tiles merge.
-
-**User decision:** the assertion was strengthened, and the surviving mutants show what is
-still missing: the order of the tiles and the "each tile merges at most once" rule.
-Specifying these in a single expression basically means writing the full algorithm again.
-So we keep the refined assertion as a reasonable lightweight contract and leave the exact
-merge behaviour to unit tests. This is the kind of trade-off that OASIs leaves to the user.
+In round 1 the LLM tried 3 inputs, but no false positive is possible: a count is never negative. The mutant shows that the
+assertion does not tie `result` to the board at all. The developer strengthened the assertion in `case.json` to
+the exact definition. In round 2 the 3 inputs and 3 mutants (counting non-zero cells, skipping
+the first cell, returning one more) were all handled by the assertion, so the developer stops.
 
 ---
 
 ## 4. Conclusions
 
-- The **false-positive check** quickly found real counterexamples to Daikon-style bounds
-  (`result <= 2048`, `result >= 2`) that come from limited traces.
-- The **false-negative check** produced concrete, readable mutants that show what an
-  assertion misses. They make it clear what property has to be added.
-- Running the tool again on the refined assertion is useful. The LLM adapts its mutants to the
-  new assertion, so it finds the next weakness (case 2), or there is no evidence left (case 1).
-- Executing every LLM answer is essential. In the reports, some LLM mutants were equivalent or
-  were killed, and some LLM inputs were invalid for 2048 (negative or odd tiles). Only
-  behaviour that was actually observed is reported to the user.
+- **One counterexample per round** keeps the feedback concrete. Each round tells the developer
+  exactly what is wrong with the current assertion.
+- The **false-positive search** quickly breaks Daikon-style bounds that come from limited traces,
+  such as `result >= 2` and `result <= 2048`.
+- The **false-negative search** shows what a weak assertion misses, with a readable mutant and the
+  input that exposes it.
+- A strengthened assertion can still be too weak. In `maxTile`, round 4 adds an upper bound
+  and a new mutant passes it. Iterating until there is no counterexample is what produces a complete assertion.
+- **Executing every answer is essential.** Unparseable or wrong LLM answers are skipped, and only
+  behaviour that was actually observed in Java is reported.

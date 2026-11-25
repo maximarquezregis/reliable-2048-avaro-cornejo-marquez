@@ -1,6 +1,0 @@
-{
-  "method": "mergeRowLeft",
-  "params": [{"name": "row", "type": "int[]"}],
-  "return_type": "int[]",
-  "assertion": "result.length == row.length"
-}
