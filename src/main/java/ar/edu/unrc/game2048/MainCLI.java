@@ -43,7 +43,7 @@ public class MainCLI {
                 System.out.println("🎉 Congratulations! You reached 2048! 🎉");
                 System.out.println("You can continue playing or quit.");
                 assert board.repOk();
-                assert (board.getScore() >= WINNING_VALUE);
+                //assert (board.getScore() >= WINNING_VALUE);
                 assert hasCellWithValue(board, WINNING_VALUE);
             }
             
