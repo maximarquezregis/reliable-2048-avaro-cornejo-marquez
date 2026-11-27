@@ -73,11 +73,13 @@ class BoardTest {
         assertEquals(size * size, b.getEmptyPositions().size());
     }
 
-    @Test
-    void setCellValueTest() {
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void setCellValueTest(int size) {
+        Board b = new Board(size);
         Cell cell = new Cell(2);
-        board.setCell(0, 0, cell);
-        assertTrue(board.getCell(0, 0).getValue() == 2);
+        b.setCell(0, 0, cell);
+        assertTrue(b.getCell(0, 0).getValue() == 2);
     }
 
     @Test
@@ -112,9 +114,11 @@ class BoardTest {
         );
     }
 
-    @Test
-    void getScoreTest() {
-        assertTrue(board.getScore() >= 0);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    void getScoreTest(int size) {
+        Board b = new Board(size);
+        assertTrue(b.getScore() >= 0);
     }
 
     @ParameterizedTest
@@ -156,16 +160,20 @@ class BoardTest {
         assertNotEquals(pos3.hashCode(), pos1.hashCode());
     }
 
-    @Test
-    public void testIsWinningBoard() {
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testIsWinningBoard(int size) {
+        Board b = new Board(size);
         Cell c = new Cell(2048);
-        board.setCell(0, 0, c);
-        assertTrue(board.isWinningBoard());
+        b.setCell(0, 0, c);
+        assertTrue(b.isWinningBoard());
     }
 
-    @Test
-    public void testNotIsWinningBoard() {
-        assertFalse(board.isWinningBoard());
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testNotIsWinningBoard(int size) {
+        Board b = new Board(size);
+        assertFalse(b.isWinningBoard());
     }
 
     @ParameterizedTest
@@ -198,13 +206,15 @@ class BoardTest {
         });
     }
 
-    @Test
-    public void testGetCellValidPosition() {
-        clearBoard(board);
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testGetCellValidPosition(int size) {
+        Board b = new Board(size);
+        clearBoard(b);
         Cell c = new Cell(8);
-        board.setCell(0, 0, c);
-        assertTrue(board.getCell(0, 0).getValue() == 8);
-        assertFalse(board.getCell(0, 1).getValue() == 8);
+        b.setCell(0, 0, c);
+        assertTrue(b.getCell(0, 0).getValue() == 8);
+        assertFalse(b.getCell(0, 1).getValue() == 8);
     }
 
     @Test
@@ -543,20 +553,21 @@ class BoardTest {
      * Verifies that the total number of non-empty cells matches the expected,
      * that is the initial tiles plus the newly random generated tile.
      */
-    @Test
-    public void testMoveLeftPlusNewCellAmount() {
-        Board grid = new Board();
-        grid.clearBoard();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveLeftPlusNewCellAmount(int size) {
+        Board b = new Board(size);
+        b.clearBoard();
 
-        grid.setCell(1, 1, new Cell(2));
-        grid.setCell(3, 2, new Cell(4));
-        grid.setCell(0, 3, new Cell(8));
+        b.setCell(1, 1, new Cell(2));
+        b.setCell(3, 2, new Cell(4));
+        b.setCell(0, 3, new Cell(8));
 
 
         int tileAmountExpected = 4; // the three that already exists plus the new random tile
-        grid.moveLeft();
+        b.moveLeft();
 
-        assertEquals(tileAmountExpected, grid.tileAmount());
+        assertEquals(tileAmountExpected, b.tileAmount());
     }
 
     /**
@@ -565,19 +576,20 @@ class BoardTest {
      * is the initial tiles plus the newly random generated tile minus one (because
      * two tiles were merged).
      */
-    @Test
-    public void testMoveLeftWithMergeAmount() {
-        Board grid = new Board();
-        grid.clearBoard();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testMoveLeftWithMergeAmount(int size) {
+        Board b = new Board(size);
+        b.clearBoard();
 
-        grid.setCell(1, 1, new Cell(2));
-        grid.setCell(1, 2, new Cell(2)); // this cell should merge with the upper one
-        grid.setCell(0, 3, new Cell(8));
+        b.setCell(1, 1, new Cell(2));
+        b.setCell(1, 2, new Cell(2)); // this cell should merge with the upper one
+        b.setCell(0, 3, new Cell(8));
 
         int tileAmountExpected = 3;
-        grid.moveLeft();
+        b.moveLeft();
 
-        assertEquals(tileAmountExpected, grid.tileAmount());
+        assertEquals(tileAmountExpected, b.tileAmount());
     }
 
     @ParameterizedTest
@@ -603,11 +615,12 @@ class BoardTest {
     /**
      * Tests the isLosingBoard method when the board contains only empty cells.
      */
-    @Test
-    public void testIsLosingBoardWithEmptyCells() {
-        Board grid = new Board();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testIsLosingBoardWithEmptyCells(int size) {
+        Board b = new Board(size);
 
-        assertFalse(grid.isLosingBoard());
+        assertFalse(b.isLosingBoard());
     }
 
     /**
@@ -824,32 +837,27 @@ class BoardTest {
      * This test ensures that the internal representation of a `Board` object
      * satisfies its class invariants.
      */
-    @Test
-    public void testRepOk() {
-        Board grid = new Board();
-        grid.clearBoard();
+    @ParameterizedTest
+    @MethodSource("sizes")
+    public void testRepOk(int size) {
+        Board b = new Board(size);
+        b.clearBoard();
 
-        int gridSize = grid.getSize();
-
-        ArrayList<Cell> list = new ArrayList<>(gridSize);
+        ArrayList<Cell> list = new ArrayList<>(4);
         list.add(new Cell(2));
         list.add(new Cell(4));
         list.add(new Cell(8));
         list.add(new Cell(16));
 
-        for (int c = 0; c < gridSize; c++) {
-            grid.setCell(0, c, list.get(c));
-            grid.setCell(2, c, list.get(c));
+        for (int r = 0; r < size; r++) {
+            for (int c = 0; c < size; c++) {
+                b.setCell(r, c, list.get((r + c) % 4));
+            }
         }
 
-        for (int c = 0; c < gridSize; c++) {
-            grid.setCell(1, c, list.get(gridSize - c - 1));
-            grid.setCell(3, c, list.get(gridSize - c - 1));
-        }
+        b.setCell(size - 2, size - 1, Cell.EMPTY);
 
-        grid.setCell(2,3, Cell.EMPTY);
-
-        assertTrue(grid.repOk());
+        assertTrue(b.repOk());
     }
 
     /**

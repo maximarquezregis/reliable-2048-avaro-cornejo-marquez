@@ -549,8 +549,8 @@ public class Board {
      * Clears the board by setting all cells to their default empty state.
      */
     public void clearBoard() {
-        for(int i = 0; i < DEFAULT_SIZE; i++) {
-            for(int j = 0; j < DEFAULT_SIZE; j++) {
+        for(int i = 0; i < size; i++) {
+            for(int j = 0; j < size; j++) {
                 Cell auxCell = new Cell(0);
                 this.setCell(i, j, auxCell);
             }
