@@ -195,3 +195,48 @@ Daikon inferred many useful invariants that we didn't include in our Board `repO
 We updated Board `repOk()` to check that the size, grid, rows, cells, and score are valid, while still checking every cell with `Cell.repOk()`. This makes the representation invariant more complete and returns `false` for invalid boards. Daikon helped us identify and recognize invariants that we hadn't taken into account when implementing Board `repOk()`.
 
 Manual testing was the most useful approach for us because it was the first stage of the software evaluation process and allowed us to assess most of the program’s functionality. It helped us verify the expected behavior of the main features and identify usability issues early in the evaluation process. If we had to select an automated testing technique, we would probably choose EvoSuite because it helped us identify edge cases that we had not previously considered.
+
+## Daikon Re-run with Expanded Traces
+
+To eliminate the remaining spurious invariants at both the object and method levels, we expanded the trace collection in `DaikonTestTrace` and `run-daikon.sh`:
+
+- **Longer and more diverse JUnit traces (`DaikonTestTrace`):** we added simulated multi-move games across board sizes from `1` to `10`, along with diverse winning, losing, full, and high-score states (including scores above `WINNING_VALUE`), and broader coverage of `Cell` and `Board.Position` operations.
+- **Multiple CLI fuzzer traces (`run-daikon.sh`):** instead of a single `4x4` game, the script now records `12` separate fuzzed `MainCLI` games across different board sizes (`4x4`, `5x5`, and `6x6`) into distinct `.dtrace.gz` files (`13` trace files in total) and filters instrumentation strictly to `Board` and `Cell`.
+
+### New Inferred Object Invariants
+
+#### Board
+
+| Invariant | Correct? | Useful? | Already in `repOK()`? | Too strong? (counterexample) | Classification |
+|---|---|---|---|---|---|
+| `this.size == size(this.grid[])` | Yes | Yes, catches inconsistencies between `size` and the grid | Yes | No | Correct and useful |
+| `this.size >= 0` | Yes | Weak, since valid boards require `size > 0` | Yes (stronger: `size > 0`) | No | Correct and useful (but weak) |
+| `this.grid.getClass().getName() == ar.edu.unrc.game2048.Cell[][].class` | Yes | No, the field type cannot change | No | No | Correct, but trivial |
+| `this.grid[] elements != null` | Yes | Yes, catches uninitialized rows | Yes | No | Correct and useful |
+| `this.score >= 0` | Yes | Yes, ensures the score never becomes negative | Yes | No | Correct and useful |
+| `size(this.grid[]) >= 1` | Yes | Yes, ensures the board grid is non-empty | Yes | No | Correct and useful |
+| `this.score % ar.edu.unrc.game2048.Board.DEFAULT_SIZE == 0` | Yes, merges always add multiples of `4` | Limited, depends on `DEFAULT_SIZE` being `4` | No | No (would only fail if `DEFAULT_SIZE` changed) | Correct but useless |
+| `ar.edu.unrc.game2048.Board.WINNING_VALUE > this.size` | No | No | No | Yes: `new Board(2048)` (kept `@Ignore`d in Chicory) | Spurious and incorrect |
+| `ar.edu.unrc.game2048.Board.WINNING_VALUE > size(this.grid[])` | No (equivalent to `WINNING_VALUE > this.size`) | No | No | Yes: `new Board(2048)` | Spurious and incorrect |
+
+#### Cell
+
+| Invariant | Correct? | Useful? | Already in `repOK()`? | Too strong? (counterexample) | Classification |
+|---|---|---|---|---|---|
+| `this.value >= 0` | Yes | Useful, but weak compared to power-of-two validation | Yes | No | Correct and useful (but weak) |
+| `this.value >= ar.edu.unrc.game2048.Cell.EMPTY.value` | Yes | Redundant with `this.value >= 0` | Yes | No | Correct and useful (but weak) |
+
+#### Notable Method Preconditions and Postconditions (`ENTER` / `EXIT`)
+
+| Program Point | Invariant | Correct? | Useful? | Classification |
+|---|---|---|---|---|
+| `Board.moveUp/Down/Left/Right():::EXIT` | `this.score >= orig(this.score)` | Yes | Yes, ensures the score is monotonically non-decreasing | Correct and useful |
+| `Board.moveUp/Down/Left/Right():::EXIT` | `(return == false) ==> (this.score == orig(this.score))` | Yes | Yes, a no-op move must not change the score | Correct and useful |
+| `Board.getCell` / `setCell` / `validatePosition:::ENTER` | `0 <= row <= size(this.grid[])-1` and `0 <= col <= size(this.grid[])-1` | Yes | Yes, captures the valid grid bounds precondition | Correct and useful |
+| `Board.clearBoard():::ENTER` | `Board.DEFAULT_SIZE <= this.size` | Yes | Yes, reflects that `clearBoard()` iterates up to `DEFAULT_SIZE` | Correct and useful |
+| `Cell.canMergeWith(Cell):::EXIT` | `(return == true) ==> (this.value == other.value && this.value >= 2 && this.value is a power of 2)` | Yes | Yes, captures the exact mergeability condition | Correct and useful |
+| `Cell.mergeWith(Cell):::EXIT` | `2 * this.value - return.value == 0` and `return.value is a power of 2` | Yes | Yes, verifies that merging doubles the tile value | Correct and useful |
+| `Cell.isPowerOf2(int):::EXIT` | `(return == true) ==> (orig(n) is a power of 2)` | Yes | Yes, captures the predicate's postcondition | Correct and useful |
+
+With these expanded traces, all previously spurious `Board:::OBJECT` invariants (`this.size one of {1, 4, 5}`, `DEFAULT_SIZE >= size(this.grid[])-1`, `DEFAULT_SIZE <= this.size`, `WINNING_VALUE != this.score`, and `this.score % this.size == 0`) disappeared, leaving only the `WINNING_VALUE > size` bound due to excluding the `2048x2048` board from dynamic tracing.
+

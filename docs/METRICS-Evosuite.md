@@ -53,3 +53,23 @@ uncovered paths indicate a fault in the production code. The gaps listed above,
 however, correspond to simple, low-effort test cases whose addition would
 measurably improve the quality of the suite and the confidence it provides in
 the implementation.
+
+---
+
+## Updated EvoSuite Re-run
+
+After updating `Cell` (rejecting `new Cell(1)`) and adding `Board(String, int)` / `clearInput(String)`, EvoSuite was re-run for both `Board` and `Cell` using an updated `runEvosuite.sh`:
+
+- **Command changes:** runs both classes in parallel (excluding `MainCLI`), uses a longer budget (`180s`) with the MOSA algorithm, enables flaky-test filtering, and caps random integer sizes for `Board` to avoid giant boards and timeouts.
+- **Generated tests:** increased from 76 to **92 passing tests** (`28` in `Cell_ESTest`, `64` in `Board_ESTest`) with no flaky tests and clean minimization. Five of the six previous gaps are now covered at 100%: `Position.equals()`, `hasEmptyCells()`, `isWinningBoard()`, `isFull()`, and `Board.equals()`.
+
+### JaCoCo Report
+
+| Suite | Instructions | Branches | Complexity | Lines | Methods | Classes |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| EvoSuite (Updated) | 85% (1245/1459) | 82% (176/214) | 126/152 | 85% (203/240) | 100% (45/45) | 100% (4/4) |
+
+*(Per class: `Board` 81% instr / 78% branches, `Cell` 97% / 92%, `Board.Position` 100% / 100%, `Board.Direction` 100%.)*
+
+The lower overall percentage compared to the earlier 93% baseline is due to the newly added `Board(String, int)` and `clearInput(String)` methods, where EvoSuite rarely generates valid `"[n1, n2, ...]"` strings at random. Aside from those two methods, `isLosingBoard()`, and unreachable `repOk()` failure branches, every other method in `Board` and `Cell` reaches 100% coverage.
+
