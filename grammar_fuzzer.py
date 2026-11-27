@@ -353,7 +353,7 @@ def main():
 
         print()
 
-    print("=" * 500)
+    print("=" * 50)
     print("Summary:")
     for outcome, count in outcomes.items():
         print(f"  {outcome:<12}: {count}/{trials}")
